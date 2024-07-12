@@ -1,56 +1,87 @@
 <template>
-  <!DOCTYPE html>
   <div class="login-container">
-
     <ParticlesContainer class="particalCss"/>
-    <form class="login-form">
+    <transition name="fade">
+      <div class="alert alert-warning d-flex align-items-center alert-dismissible fade show fixed-top m-3" role="alert"
+           v-if="errorMessage">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" role="img" aria-label="Warning:"
+           style="width: 1.5rem; height: 1.5rem;"></i>
+        <div>
+          {{ errorMessage }}
+        </div>
+        <button type="button" class="btn-close" @click="errorMessage = ''" aria-label="Close"></button>
+      </div>
+    </transition>
+    <form class="login-form" @submit.prevent="handleSubmit">
       <h2>登陆管理系统</h2>
       <div class="form-group">
-        <input type="email" placeholder="Email" v-model="email" required/>
+        <input type="text" placeholder="账户" v-model="account" required/>
       </div>
       <div class="form-group">
-        <input type="password" placeholder="Password" v-model="password" required/>
+        <input type="password" placeholder="密码" v-model="password" required/>
       </div>
       <div class="form-group">
         <a href="#" class="forgot-password">忘记密码?</a>
       </div>
       <button type="submit" class="btn btn-primary">登陆</button>
-
       <div class="signup-link">
         <button href="#" class="btn btn-secondary">注册</button>
-
       </div>
     </form>
   </div>
-
 </template>
 
 <script>
+import axios from 'axios';
 import ParticlesContainer from './components/tools/particales/partical.vue';
 
 export default {
   data() {
     return {
-      email: '',
-      password: ''
+      account: '',
+      password: '',
+      errorMessage: '' // 用于存储错误信息
     }
   },
   methods: {
-    handleSubmit() {
-      // Add your form submission logic here
+    async handleSubmit() {
+      try {
+        const url = `http://localhost:8081/city/login?account=${encodeURIComponent(this.account)}&password=${encodeURIComponent(this.password)}`;
+        const response = await axios.post(url)
+        // 处理响应
+        console.log(response.data);
+        const token = response.data;
+        localStorage.setItem('jwtToken', token);
+
+         this.$router.push('/home'); // 跳转到/home页面
+
+      } catch (error) {
+        console.error(error);
+        if (error.response) {
+          // 从响应中提取错误信息
+          const errorMessage = error.response.data;
+          console.error('Login failed:', errorMessage);
+          this.errorMessage = '账户或密码错误';
+        } else {
+          console.error('Error occurred:', error.message);
+          this.errorMessage = '发生错误，请稍后再试'; // 提示用户发生其他错误
+        }
+
+        // 设置定时器，3秒后隐藏错误消息
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 3000);
+      }
     }
   },
   components: {
     ParticlesContainer
-  },
+  }
 }
-
-
 </script>
 
 <style scoped>
-
-
+/* 样式保持不变 */
 .login-container {
   background-image: url("/imgs/mainBack.webp");
   background-size: cover;
@@ -59,7 +90,7 @@ export default {
   align-items: center;
   height: 100vh;
   background-color: #f5f5f5;
-   position: relative; /* 添加相对定位 */
+  position: relative;
 }
 
 .login-form {
@@ -69,7 +100,7 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 300px;
-  z-index: 1; /* 表单应该在particles之上 */
+  z-index: 1;
 }
 
 .login-form h2 {
@@ -110,7 +141,6 @@ export default {
   color: #fff;
 }
 
-
 .or-separator {
   display: flex;
   align-items: center;
@@ -135,18 +165,26 @@ export default {
 }
 
 .particalCss {
-  position: absolute; /* 绝对定位 */
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0; /* 背景应该位于最底层 */
+  z-index: 0;
 }
 
 .particles-js-canvas-el {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */
+{
+  opacity: 0;
+}
 </style>

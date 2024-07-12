@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">
+      <a class="navbar-brand" href="/home">
         <img src="/imgs/symbo.png" alt="Logo" class="d-inline-block align-text-top"
              style="padding-right:10px;height: 30px;">
         数字城市系统
@@ -20,27 +20,27 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <router-link class="nav-link" to="/home">监督指挥</router-link>
+            <router-link class="nav-link" to="/home?page=commandPage">监督指挥</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/home">用户管理</router-link>
+            <router-link class="nav-link" to="/home?page=userManagement">用户管理</router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/home?page=accept">监督受理</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/home">地理信息</router-link>
+            <router-link class="nav-link" to="/home?page=geographyPage">地理信息</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/home">绩效考核</router-link>
+            <router-link class="nav-link" to="/home?page=officerPerformPage">绩效考核</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/home">基础信息</router-link>
+            <router-link class="nav-link" to="/home?page=baseinfom">基础信息</router-link>
           </li>
         </ul>
         <span class="navbar-text">
-          <a href="#" class="nav-link d-inline-block"><i class="bi bi-house"></i> 平台首页</a>
-          <a href="#" class="nav-link d-inline-block"><i class="bi bi-gear"></i> 后台设置</a>
+          <a href="/home" class="nav-link d-inline-block"><i class="bi bi-house"></i> 平台首页</a>
+          <a href="/home?page=userSetting" class="nav-link d-inline-block"><i class="bi bi-gear"></i> 用户设置</a>
         </span>
       </div>
     </div>

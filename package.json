@@ -12,6 +12,7 @@
     "@popperjs/core": "^2.11.8",
     "axios": "^1.7.2",
     "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
     "bootstrap-vue-3": "^0.5.1",
     "bootstrap-vue-next": "^0.23.1",
     "particles.js": "^2.0.0",
@@ -19,6 +20,7 @@
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
     "@vitejs/plugin-vue": "^5.0.5",
     "vite": "^5.3.1"
   }

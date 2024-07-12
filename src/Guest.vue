@@ -4,7 +4,7 @@
             style="background-color: #c3161c; color: white;">
       <div class="d-flex align-items-center">
         <img src="/imgs/symbo.png" alt="Logo" class="logo">
-        <h1 class="mb-0 ml-3" style="padding-left: 10px">市政用户举报</h1>
+        <h1 class="mb-0 ml-3" style="padding-left: 10px">市政举报</h1>
       </div>
       <h2 class="mb-0">统一身份认证平台</h2>
     </header>
@@ -23,7 +23,9 @@
           </div>
           <button class="login-button btn btn-danger w-100 mt-3" @click="login">登录</button>
         </div>
-
+        <div v-if="errorMessage" class="alert alert-danger mt-3">
+          {{ errorMessage }}
+        </div>
         <div class="additional-links mt-3 text-center">
           <a href="#">立即注册</a> | <a href="#">忘记密码?</a>
         </div>
@@ -37,6 +39,8 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
@@ -44,16 +48,42 @@ export default {
       username: '',
       password: '',
       captcha: '',
-      captchaUrl: '/api/captcha' // 假设验证码的URL
+      captchaUrl: '/city/captcha', // 假设验证码的URL
+      errorMessage: ''
     };
   },
   methods: {
-    login() {
-      alert(`登录信息:\n用户名: ${this.username}\n密码: ${this.password}\n验证码: ${this.captcha}`);
+    async login() {
+      try {
+        const url = `city/login?account=${encodeURIComponent(this.username)}&password=${encodeURIComponent(this.password)}`;
+        const response = await axios.post(url);
+        // 处理响应
+        console.log(response.data);
+        const token = response.data;
+        localStorage.setItem('jwtToken', token);
+
+        this.$router.push('/guestHome'); // 跳转到/home页面
+      } catch (error) {
+        console.error(error);
+        if (error.response) {
+          // 从响应中提取错误信息
+          const errorMessage = error.response.data; // 假设错误信息在字段名为 'message'
+          console.error('Login failed:', errorMessage);
+          this.errorMessage = errorMessage; // 直接使用服务器返回的错误信息
+        } else {
+          console.error('Error occurred:', error.message);
+          this.errorMessage = '发生错误，请稍后再试'; // 提示用户发生其他错误
+        }
+
+        // 设置定时器，3秒后隐藏错误消息
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 3000);
+      }
     },
     refreshCaptcha() {
       // 更新验证码URL以刷新图片
-      this.captchaUrl = `/api/captcha?${new Date().getTime()}`;
+      this.captchaUrl = `/city/captcha?${new Date().getTime()}`;
     }
   }
 };
@@ -104,11 +134,14 @@ header {
   margin-left: 10px;
 }
 
-
 .colorgold {
   background-color: #DABB85;
   height: 50px;
   text-align: center;
   line-height: 50px;
+}
+
+.alert {
+  color: red;
 }
 </style>

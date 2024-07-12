@@ -1,0 +1,206 @@
+<template>
+  <div class="case-management">
+    <div class="content">
+      <div class="add-case-form">
+        <form @submit.prevent="addCase">
+          <!-- 表单内容 -->
+          <div class="mb-3">
+            <label for="reporter">姓名</label>
+            <input type="text" class="form-control" v-model="newReport.reporter">
+          </div>
+          <div class="mb-3">
+            <label for="reporterPhone">电话号码</label>
+            <input type="text" class="form-control" v-model="newReport.reporterPhone">
+          </div>
+          <div class="mb-3">
+            <label for="needResponse">是否需要回复</label>
+            <select class="form-control" v-model="newReport.needResponse">
+              <option :value="true">是</option>
+              <option :value="false">否</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="photoUrl">现场图片</label>
+            <input type="file" @change="handleFileChange" class="form-control" accept="image/*">
+            <img :src="newReport.photoUrl" alt="Report Image" class="img-fluid mt-2" v-if="newReport.photoUrl">
+          </div>
+
+          <div class="mb-3">
+            <label for="caseType">案件类型</label>
+            <input type="text" class="form-control" v-model="newReport.caseType">
+          </div>
+          <div class="mb-3">
+            <label for="description">描述</label>
+            <textarea class="form-control" v-model="newReport.description"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="location">位置(经纬度)</label>
+            <input type="text" class="form-control" v-model="newReport.location" readonly>
+            <button type="button" class="btn btn-secondary mt-2" style="background: #3193bd" @click="locatePosition">
+              定位
+            </button>
+          </div>
+          <div class="mb-3">
+            <label for="locationDescribe">位置描述</label>
+            <input type="text" class="form-control" v-model="newReport.locationDescribe">
+          </div>
+          <div class="mb-3">
+            <label for="infoCategory">信息大类</label>
+            <input type="text" class="form-control" v-model="newReport.infoCategory">
+          </div>
+          <div class="mb-3">
+            <label for="severity">严重程度</label>
+            <input type="text" class="form-control" v-model="newReport.severity">
+          </div>
+          <button type="submit" class="btn btn-success">添加</button>
+          <button class="btn btn-danger" onclick="goBack()">返回</button>
+        </form>
+      </div>
+      <div id="mapContainer" class="map-container"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+import AMapLoader from "@amap/amap-jsapi-loader";
+
+export default {
+  name: "CaseManagement",
+  data() {
+    return {
+      newReport: {
+        caseID: '',
+        photoUrl: '',
+        caseType: '',
+        description: '',
+        location: '',
+        locationDescribe: '',
+        status: '',
+        createdDate: '',
+        closedDate: '',
+        reporter: '',
+        reporterPhone: '',
+        needResponse: false,
+        infoCategory: '',
+        handlingMethod: '',
+        verified: false,
+        severity: '',
+      },
+      map: null,
+      geolocation: null
+    };
+  },
+  mounted() {
+    this.initMap();
+  },
+  methods: {
+    addCase() {
+      // 调用API或者其他方法来保存案件信息
+      console.log("案件信息:", this.newReport);
+    },
+
+    initMap() {
+      AMapLoader.load({
+        key: "bd2b09677fcbd6ff91a7988ecc1e88d1", // 申请好的Web端开发者Key，首次调用 load 时必填
+        version: "2.0", //
+      }).then(AMap => {
+        this.map = new AMap.Map("mapContainer", {
+          resizeEnable: true,
+          zoom: 10
+        });
+
+        AMap.plugin('AMap.Geolocation', () => {
+          this.geolocation = new AMap.Geolocation({
+            enableHighAccuracy: true, // 是否使用高精度定位，默认：true
+            timeout: 10000,           // 超过10秒后停止定位，默认：无穷大
+            buttonPosition: 'RB',     // 定位按钮的停靠位置
+            buttonOffset: new AMap.Pixel(10, 20), // 定位按钮的偏移量，默认：Pixel(10, 20)
+            zoomToAccuracy: true      // 定位成功后是否自动调整地图视野到定位点
+          });
+          this.map.addControl(this.geolocation);
+        });
+      }).catch(e => {
+        console.error(e);
+      });
+    },
+
+    locatePosition() {
+      if (this.geolocation) {
+        this.geolocation.getCurrentPosition((status, result) => {
+          if (status === 'complete') {
+            this.onComplete(result);
+          } else {
+            this.onError(result);
+          }
+        });
+      }
+    },
+
+    onComplete(data) {
+      this.newReport.location = `${data.position.getLng()}, ${data.position.getLat()}`;
+      console.log('当前位置：', this.newReport.location);
+    },
+
+    onError(data) {
+      console.error('定位失败', data);
+    },
+
+    handleFileChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.newReport.photoUrl = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+.case-management {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* 设置视口高度 */
+  background: #f5f5f5; /* 背景颜色 */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+h2 {
+  color: #c3161c;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  margin-top: 20px;
+}
+
+.add-case-form {
+  width: 50%; /* 设置添加案件表单宽度 */
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto; /* 添加垂直滚动 */
+}
+
+button {
+  padding: 10px;
+  margin: 10px;
+  border: none;
+  width: 20%;
+  color: #fff;
+}
+
+.map-container {
+  width: 50%; /* 设置地图容器宽度 */
+  height: 100vh; /* 设置地图容器高度 */
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+</style>

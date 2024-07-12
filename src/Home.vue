@@ -1,13 +1,7 @@
 <template>
   <div>
     <NavBar/>
-    <b-container>
-      <b-row>
-        <b-col>
           <component :is="currentComponent"></component>
-        </b-col>
-      </b-row>
-    </b-container>
   </div>
 </template>
 
@@ -15,13 +9,27 @@
 import NavBar from './components/tools/Navbar.vue';
 import {ref, watch} from 'vue';
 import {useRoute} from 'vue-router';
-import AcceptPage from './components/AcceptPage.vue'; // 监督受理页面
+import AcceptPage from './components/home/AcceptPage.vue'; // 监督受理页面
+import InformationPage from './components/home/InformationPage.vue';
+import UserManagement from './components/home/UserManagementPage.vue';
+import UserSetting from './components/home/UserSettingPage.vue';
+import GeographyPage from './components/home/GeographyPage.vue';
+import OfficerPerformPage from './components/home/OfficerPerformPage.vue';
+import CommandPage from './components/home/CommandPage.vue'
+import DefaultPage from "@/components/home/DefaultPage.vue";
 
 export default {
   name: 'Home',
   components: {
     NavBar,
-    AcceptPage
+    AcceptPage,
+    InformationPage,
+    UserManagement,
+    UserSetting,
+    GeographyPage,
+    OfficerPerformPage,
+    CommandPage,
+    DefaultPage,
   },
   setup() {
     const route = useRoute();
@@ -34,8 +42,33 @@ export default {
             case 'accept':
               currentComponent.value = 'AcceptPage';
               break;
+
+            case 'baseinfom':
+              currentComponent.value = 'InformationPage';
+              break;
+
+            case 'userSetting':
+              currentComponent.value = 'UserSetting';
+              break;
+
+            case 'userManagement':
+              currentComponent.value = 'UserManagement';
+              break;
+
+            case 'geographyPage':
+              currentComponent.value = 'GeographyPage';
+              break;
+
+            case 'officerPerformPage':
+              currentComponent.value = 'OfficerPerformPage';
+              break;
+
+            case 'commandPage':
+              currentComponent.value = 'CommandPage';
+              break;
+
             default:
-              currentComponent.value = 'AcceptPage';
+              currentComponent.value = 'DefaultPage';
               break;
           }
         },

@@ -20,6 +20,7 @@
       <div class="form-group">
         <input type="password" placeholder="密码" v-model="password" required/>
       </div>
+
       <div class="form-group">
         <a href="#" class="forgot-password">忘记密码?</a>
       </div>

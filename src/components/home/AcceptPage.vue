@@ -4,8 +4,7 @@
       <div class="col-md-3">
         <div class="sidebar">
           <div class="btn-container">
-
-            <button class="btn btn-danger mb-3" style="width: 50%" @click="deleteReport(selectedReport.caseID)">批量删除</button>
+            <button class="btn btn-danger mb-3" style="width: 50%" @click="deleteSelectedReports">批量删除</button>
           </div>
           <h5>查询</h5>
           <div class="list-group">
@@ -40,18 +39,18 @@
             </tr>
           </thead>
           <tbody>
-          <tr v-for="report in reports" :key="report.caseID" @click="selectReport(report)">
-            <td><input type="checkbox" :value="report.caseID" v-model="selectedReports" @click.stop/></td>
-            <!-- 每行的复选框 -->
-            <td>{{ report.caseID }}</td>
-            <td>{{ report.reporter }}</td>
-            <td>{{ report.reporterPhone }}</td>
-            <td>{{ report.createdDate }}</td>
-            <td>{{ report.needResponse ? '是' : '否' }}</td>
+            <tr v-for="report in reports" :key="report.caseID" @click="selectReport(report)">
+              <td><input type="checkbox" :value="report.caseID" v-model="selectedReports" @click.stop/></td>
+              <!-- 每行的复选框 -->
+              <td>{{ report.caseID }}</td>
+              <td>{{ report.reporter }}</td>
+              <td>{{ report.reporterPhone }}</td>
+              <td>{{ report.createdDate }}</td>
+              <td>{{ report.needResponse ? '是' : '否' }}</td>
               <td>{{ report.description }}</td>
-            <td>{{ report.infoCategory }}</td>
-            <td>{{ report.locationDescribe }}</td>
-            <td>{{ report.status }}</td>
+              <td>{{ report.infoCategory }}</td>
+              <td>{{ report.locationDescribe }}</td>
+              <td>{{ report.status }}</td>
             </tr>
           </tbody>
         </table>
@@ -59,7 +58,6 @@
                     style=" display: flex;justify-content: center;"/>
       </div>
     </div>
-
 
     <div class="details-panel" v-if="selectedReport">
       <div class="details-header">
@@ -86,7 +84,28 @@
       </div>
       <div class="details-actions">
         <button class="btn btn-warning">作废</button>
-        <button class="btn btn-primary">立案</button>
+        <button class="btn btn-primary" @click="showAssignManagerModal">立案</button>
+      </div>
+    </div>
+
+    <!-- Manager Selection Modal -->
+    <div class="modal" tabindex="-1" role="dialog" v-if="showManagerModal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">选择承办人</h5>
+            <button type="button" class="close" @click="showManagerModal = false">&times;</button>
+          </div>
+          <div class="modal-body">
+            <select v-model="selectedManagerID">
+              <option v-for="manager in managers" :key="manager.id" :value="manager.id">{{ manager.name }}</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" @click="assignManager">确认</button>
+            <button type="button" class="btn btn-secondary" @click="showManagerModal = false">取消</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -100,14 +119,17 @@ const pageSize = 10; // 设置单页显示个数
 
 export default {
   name: 'AcceptPage',
-  components: {pagination},
+  components: { pagination },
   data() {
     return {
       reports: [],
       selectedReport: null,
-      selectedReports: [],  // 新增：用于存储选中的报告ID
+      selectedReports: [], // 用于存储选中的报告ID
       totalPages: 1,
       currentPage: 1,
+      showManagerModal: false, // Modal visibility
+      selectedManagerID: null, // Selected Manager ID
+      managers: [], // List of managers
       newReport: {
         caseID: '',
         photoUrl: '',
@@ -124,7 +146,8 @@ export default {
         infoCategory: '',
         handlingMethod: '',
         verified: false,
-        severity: ''
+        severity: '',
+        managerID: null // Manager ID field
       }
     };
   },
@@ -136,14 +159,14 @@ export default {
           'Authorization': token
         }
       })
-          .then(response => {
-            this.reports = response.data.reports;
-            this.totalPages = response.data.totalPages;
-            this.currentPage = page;
-          })
-          .catch(error => {
-            console.error("身份验证错误", error);
-          });
+        .then(response => {
+          this.reports = response.data.reports;
+          this.totalPages = response.data.totalPages;
+          this.currentPage = page;
+        })
+        .catch(error => {
+          console.error("身份验证错误", error);
+        });
     },
     handlePageChange(page) {
       this.fetchReports(page);
@@ -153,21 +176,59 @@ export default {
     },
     addReport(report) {
       axios.post('/api/reports', report)
-          .then(() => {
-            this.fetchReports(this.currentPage);
-          })
-          .catch(error => {
-            console.error("Error adding report:", error);
-          });
+        .then(() => {
+          this.fetchReports(this.currentPage);
+        })
+        .catch(error => {
+          console.error("Error adding report:", error);
+        });
     },
     deleteReport(reportId) {
       axios.delete(`/api/reports/${reportId}`)
+        .then(() => {
+          this.fetchReports(this.currentPage);
+        })
+        .catch(error => {
+          console.error("Error deleting report:", error);
+        });
+    },
+    deleteSelectedReports() {
+      const requests = this.selectedReports.map(id => axios.delete(`/api/reports/${id}`));
+      axios.all(requests)
+        .then(() => {
+          this.fetchReports(this.currentPage);
+          this.selectedReports = [];
+        })
+        .catch(error => {
+          console.error("Error deleting selected reports:", error);
+        });
+    },
+    showAssignManagerModal() {
+      this.fetchManagers(); // Fetch the list of managers before showing the modal
+      this.showManagerModal = true;
+    },
+    fetchManagers() {
+      axios.get('/api/managers')
+        .then(response => {
+          this.managers = response.data;
+        })
+        .catch(error => {
+          console.error("Error fetching managers:", error);
+        });
+    },
+    assignManager() {
+      if (this.selectedReport && this.selectedManagerID) {
+        this.selectedReport.managerID = this.selectedManagerID;
+        axios.put(`/api/reports/${this.selectedReport.caseID}`, this.selectedReport)
           .then(() => {
+            this.showManagerModal = false;
+            this.selectedReport = null; // Close details panel after assigning
             this.fetchReports(this.currentPage);
           })
           .catch(error => {
-            console.error("Error deleting report:", error);
+            console.error("Error assigning manager:", error);
           });
+      }
     }
   },
   created() {
@@ -239,6 +300,17 @@ export default {
   margin-bottom: 10px;
 }
 
+.modal {
+  display: block;
+  background: rgba(0, 0, 0, 0.5);
+}
 
+.modal-dialog {
+  margin: 100px auto;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+}
 </style>
-

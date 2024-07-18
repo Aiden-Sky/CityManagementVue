@@ -167,12 +167,12 @@
     </div>
 
     <!-- 添加与修改用户模态框 -->
-    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div v-if="showModal" class="modal fade show" tabindex="-1" style="display: block;">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="userModalLabel">{{ isEdit ? '修改' : '新建' }}{{ modalTitle }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title">{{ isEdit ? '修改' : '新建' }}{{ modalTitle }}</h5>
+            <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div v-if="activeTab === 'residents'">
@@ -210,12 +210,11 @@
                 </div>
                 <div class="mb-3">
                   <label for="residentPhoneNumber" class="form-label">电话:</label>
-                  <input type="text" class="form-control" id="residentPhoneNumber" v-model="currentUser.PhoneNumber" required>
+                  <input type="tel" class="form-control" id="residentPhoneNumber" v-model="currentUser.PhoneNumber" required>
                 </div>
-                <button type="submit" class="btn btn-primary">{{ isEdit ? '保存修改' : '创建' }}</button>
+                <button type="submit" class="btn btn-primary">{{ isEdit ? '保存修改' : '新建市民' }}</button>
               </form>
             </div>
-
             <div v-if="activeTab === 'cityManagers'">
               <form @submit.prevent="saveCityManager">
                 <div class="mb-3">
@@ -239,7 +238,7 @@
                 </div>
                 <div class="mb-3">
                   <label for="managerPhoneNumber" class="form-label">电话:</label>
-                  <input type="text" class="form-control" id="managerPhoneNumber" v-model="currentUser.PhoneNumber" required>
+                  <input type="tel" class="form-control" id="managerPhoneNumber" v-model="currentUser.PhoneNumber" required>
                 </div>
                 <div class="mb-3">
                   <label for="managerAddress" class="form-label">地址:</label>
@@ -257,10 +256,9 @@
                   <label for="managerPosition" class="form-label">职位:</label>
                   <input type="text" class="form-control" id="managerPosition" v-model="currentUser.Position" required>
                 </div>
-                <button type="submit" class="btn btn-primary">{{ isEdit ? '保存修改' : '创建' }}</button>
+                <button type="submit" class="btn btn-primary">{{ isEdit ? '保存修改' : '新建城市管理者' }}</button>
               </form>
             </div>
-
             <div v-if="activeTab === 'admin'">
               <form @submit.prevent="saveAdmin">
                 <div class="mb-3">
@@ -279,7 +277,7 @@
                   <label for="adminRemark" class="form-label">备注:</label>
                   <input type="text" class="form-control" id="adminRemark" v-model="currentUser.Remark">
                 </div>
-                <button type="submit" class="btn btn-primary">{{ isEdit ? '保存修改' : '创建' }}</button>
+                <button type="submit" class="btn btn-primary">{{ isEdit ? '保存修改' : '新建系统总管' }}</button>
               </form>
             </div>
           </div>
@@ -291,10 +289,21 @@
 
 <script>
 export default {
-  name: 'UserManagement',
   data() {
     return {
-      activeTab: 'residents', // 当前选中的选项卡
+      activeTab: 'residents',
+      residents: [
+        { Account: 'user1', Name: '张三', Sex: '男', DateOfBirthday: '1990-01-01', Address: '地址1', IDNumber: '1234567890', Email: 'zhangsan@example.com', PhoneNumber: '12345678901' },
+        // 添加其他市民数据
+      ],
+      cityManagers: [
+        { Account: 'manager1', Name: '李四', Sex: '女', Email: 'lisi@example.com', PhoneNumber: '23456789012', Address: '地址2', IDNumber: '0987654321', Department: '部门1', Position: '职位1' },
+        // 添加其他城市管理者数据
+      ],
+      admins: [
+        { Account: 'admin1', Name: '王五', Position: '系统管理员', Remark: '备注1' },
+        // 添加其他系统总管数据
+      ],
       filters: {
         residentName: '',
         residentSex: '',
@@ -303,161 +312,135 @@ export default {
         adminName: '',
         adminPosition: ''
       },
-      residents: [],
-      cityManagers: [],
-      admins: [],
-      filteredResidents: [],
-      filteredCityManagers: [],
-      filteredAdmins: [],
+      showModal: false,
       isEdit: false,
-      modalTitle: '',
-      currentUser: {}
+      currentUser: null
     };
   },
-  watch: {
-    filters: {
-      handler() {
-        this.applyFilters();
-      },
-      deep: true
+  computed: {
+    filteredResidents() {
+      return this.residents.filter(resident => {
+        return (!this.filters.residentName || resident.Name.includes(this.filters.residentName)) &&
+               (!this.filters.residentSex || resident.Sex === this.filters.residentSex);
+      });
+    },
+    filteredCityManagers() {
+      return this.cityManagers.filter(manager => {
+        return (!this.filters.managerName || manager.Name.includes(this.filters.managerName)) &&
+               (!this.filters.managerDepartment || manager.Department === this.filters.managerDepartment);
+      });
+    },
+    filteredAdmins() {
+      return this.admins.filter(admin => {
+        return (!this.filters.adminName || admin.Name.includes(this.filters.adminName)) &&
+               (!this.filters.adminPosition || admin.Position === this.filters.adminPosition);
+      });
+    },
+    modalTitle() {
+      switch (this.activeTab) {
+        case 'residents':
+          return '市民';
+        case 'cityManagers':
+          return '城市管理者';
+        case 'admin':
+          return '系统总管';
+        default:
+          return '';
+      }
     }
   },
-  mounted() {
-    // 初始化数据
-    this.fetchResidents();
-    this.fetchCityManagers();
-    this.fetchAdmins();
-  },
   methods: {
-    applyFilters() {
-      this.filteredResidents = this.residents.filter(resident => {
-        return (
-          (!this.filters.residentName || resident.Name.includes(this.filters.residentName)) &&
-          (!this.filters.residentSex || resident.Sex === this.filters.residentSex)
-        );
-      });
-
-      this.filteredCityManagers = this.cityManagers.filter(manager => {
-        return (
-          (!this.filters.managerName || manager.Name.includes(this.filters.managerName)) &&
-          (!this.filters.managerDepartment || manager.Department === this.filters.managerDepartment)
-        );
-      });
-
-      this.filteredAdmins = this.admins.filter(admin => {
-        return (
-          (!this.filters.adminName || admin.Name.includes(this.filters.adminName)) &&
-          (!this.filters.adminPosition || admin.Position === this.filters.adminPosition)
-        );
-      });
-    },
     openResidentModal(resident) {
+      this.currentUser = resident ? { ...resident } : { Account: '', Name: '', Sex: '', DateOfBirthday: '', Address: '', IDNumber: '', Email: '', PhoneNumber: '' };
       this.isEdit = !!resident;
-      this.modalTitle = '市民';
-      this.currentUser = resident ? { ...resident } : {};
-      new bootstrap.Modal(document.getElementById('userModal')).show();
+      this.showModal = true;
     },
     openCityManagerModal(manager) {
+      this.currentUser = manager ? { ...manager } : { Account: '', Name: '', Sex: '', Email: '', PhoneNumber: '', Address: '', IDNumber: '', Department: '', Position: '' };
       this.isEdit = !!manager;
-      this.modalTitle = '城市管理者';
-      this.currentUser = manager ? { ...manager } : {};
-      new bootstrap.Modal(document.getElementById('userModal')).show();
+      this.showModal = true;
     },
     openAdminModal(admin) {
+      this.currentUser = admin ? { ...admin } : { Account: '', Name: '', Position: '', Remark: '' };
       this.isEdit = !!admin;
-      this.modalTitle = '系统总管';
-      this.currentUser = admin ? { ...admin } : {};
-      new bootstrap.Modal(document.getElementById('userModal')).show();
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+         this.currentUser = null;
+      this.isEdit = false;
     },
     saveResident() {
       if (this.isEdit) {
-        const index = this.residents.findIndex(r => r.Account === this.currentUser.Account);
-        this.$set(this.residents, index, this.currentUser);
+        const index = this.residents.findIndex(resident => resident.Account === this.currentUser.Account);
+        if (index !== -1) {
+          this.residents.splice(index, 1, this.currentUser);
+        }
       } else {
         this.residents.push(this.currentUser);
       }
-      this.applyFilters();
-      bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+      this.closeModal();
     },
     saveCityManager() {
       if (this.isEdit) {
-        const index = this.cityManagers.findIndex(m => m.Account === this.currentUser.Account);
-        this.$set(this.cityManagers, index, this.currentUser);
+        const index = this.cityManagers.findIndex(manager => manager.Account === this.currentUser.Account);
+        if (index !== -1) {
+          this.cityManagers.splice(index, 1, this.currentUser);
+        }
       } else {
         this.cityManagers.push(this.currentUser);
       }
-      this.applyFilters();
-      bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+      this.closeModal();
     },
     saveAdmin() {
       if (this.isEdit) {
-        const index = this.admins.findIndex(a => a.Account === this.currentUser.Account);
-        this.$set(this.admins, index, this.currentUser);
+        const index = this.admins.findIndex(admin => admin.Account === this.currentUser.Account);
+        if (index !== -1) {
+          this.admins.splice(index, 1, this.currentUser);
+        }
       } else {
         this.admins.push(this.currentUser);
       }
-      this.applyFilters();
-      bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+      this.closeModal();
     },
     deleteResident(resident) {
-      this.residents = this.residents.filter(r => r.Account !== resident.Account);
-      this.applyFilters();
+      const index = this.residents.findIndex(r => r.Account === resident.Account);
+      if (index !== -1) {
+        this.residents.splice(index, 1);
+      }
     },
     deleteCityManager(manager) {
-      this.cityManagers = this.cityManagers.filter(m => m.Account !== manager.Account);
-      this.applyFilters();
+      const index = this.cityManagers.findIndex(m => m.Account === manager.Account);
+      if (index !== -1) {
+        this.cityManagers.splice(index, 1);
+      }
     },
     deleteAdmin(admin) {
-      this.admins = this.admins.filter(a => a.Account !== admin.Account);
-      this.applyFilters();
+      const index = this.admins.findIndex(a => a.Account === admin.Account);
+      if (index !== -1) {
+        this.admins.splice(index, 1);
+      }
     },
-    fetchResidents() {
-      // 获取市民数据
-      this.residents = [
-        {
-          Account: 'user1',
-          Name: '张三',
-          Sex: '男',
-          DateOfBirthday: '1990-01-01',
-          Address: '北京市',
-          IDNumber: '110101199001011234',
-          Email: 'zhangsan@example.com',
-          PhoneNumber: '13800138000'
-        },
-        // 其他市民数据
-      ];
-      this.filteredResidents = this.residents;
+    applyResidentFilters() {
+      // This method can be expanded to apply more complex filtering if necessary.
+      this.filteredResidents = this.residents.filter(resident => {
+        return (!this.filters.residentName || resident.Name.includes(this.filters.residentName)) &&
+               (!this.filters.residentSex || resident.Sex === this.filters.residentSex);
+      });
     },
-    fetchCityManagers() {
-      // 获取城市管理者数据
-      this.cityManagers = [
-        {
-          Account: 'manager1',
-          Name: '李四',
-          Sex: '女',
-          Email: 'lisi@example.com',
-          PhoneNumber: '13800138001',
-          Address: '北京市',
-          IDNumber: '110101199002021234',
-          Department: '部门1',
-          Position: '职位1'
-        },
-        // 其他城市管理者数据
-      ];
-      this.filteredCityManagers = this.cityManagers;
+    applyManagerFilters() {
+      // This method can be expanded to apply more complex filtering if necessary.
+      this.filteredCityManagers = this.cityManagers.filter(manager => {
+        return (!this.filters.managerName || manager.Name.includes(this.filters.managerName)) &&
+               (!this.filters.managerDepartment || manager.Department === this.filters.managerDepartment);
+      });
     },
-    fetchAdmins() {
-      // 获取系统总管数据
-      this.admins = [
-        {
-          Account: 'admin1',
-          Name: '王五',
-          Position: '系统管理员',
-          Remark: '系统总管'
-        },
-        // 其他系统总管数据
-      ];
-      this.filteredAdmins = this.admins;
+    applyAdminFilters() {
+      // This method can be expanded to apply more complex filtering if necessary.
+      this.filteredAdmins = this.admins.filter(admin => {
+        return (!this.filters.adminName || admin.Name.includes(this.filters.adminName)) &&
+               (!this.filters.adminPosition || admin.Position === this.filters.adminPosition);
+      });
     }
   }
 };

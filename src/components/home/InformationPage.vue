@@ -312,9 +312,9 @@ export default {
       this.addBlock = false;
       this.selectedReport = null;
     },
-    deleteReport(reportId) {
+    deleteReport(report) {
       if (confirm('您确定要删除这条报告吗？')) {
-        axios.delete(`/api/reports/${reportId}`)
+        axios.post(`/city/caseInfom/deletInfom?caseId=${report.caseID}`)
             .then(() => {
               this.fetchReports(this.currentPage);
             })
@@ -324,7 +324,7 @@ export default {
       }
     },
     deleteSelectedReports() {
-      const promises = this.selectedReports.map(id => axios.delete(`/api/reports/${id}`));
+      const promises = this.selectedReports.map(id => axios.post(`/city/caseInfom/deletInfom?caseId=${id}`));
       Promise.all(promises)
           .then(() => {
             this.fetchReports(this.currentPage);

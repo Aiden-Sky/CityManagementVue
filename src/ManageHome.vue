@@ -7,8 +7,8 @@
       </div>
       <h2 class="mb-0">管理员</h2>
     </header>
-    <div class="container my-4 flex-grow-1">
-      <div class="background">
+    <div class="background">
+      <div class="container my-4 flex-grow-1">
         <div class="row">
           <div class="col-md-6">
             <div class="card text-center" @click="currentModule = 'viewCases'">
@@ -20,7 +20,7 @@
           </div>
           <div class="col-md-6">
             <div class="card text-center" @click="currentModule = 'updateCase'">
-              <div class="card-body">
+              <div class="card-body" >
                 <h5 class="card-title">修改案件进度</h5>
                 <p class="card-text">更新案件的处理状态。</p>
               </div>
@@ -87,12 +87,12 @@ header {
 }
 
 .background {
-  background: url("https://portal.bjt.beijing.gov.cn/p/assets/imgs/loginBg.png") no-repeat center center;
+  background: url("https://portal.bjt.beijing.gov.cn/p/assets/imgs/loginBg.png") no-repeat center center fixed;
   background-size: cover;
   width: 100%;
-  height: 60vh;
-  position: relative;
-  overflow: hidden;
+  min-height: 80vh;
+  padding: 20px; /* 添加内边距以避免内容紧贴边缘 */
+  box-sizing: border-box;
 }
 
 .card {
@@ -145,7 +145,7 @@ footer {
 
 @media (max-width: 768px) {
   .background {
-    height: 40vh;
+    min-height: 40vh;
   }
 }
 </style>

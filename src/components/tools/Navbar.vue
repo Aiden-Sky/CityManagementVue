@@ -4,7 +4,7 @@
       <a class="navbar-brand" href="/home">
         <img src="/imgs/symbo.png" alt="Logo" class="d-inline-block align-text-top"
              style="padding-right:10px;height: 30px;">
-        数字城市系统
+        数字城市管理系统
       </a>
       <button
           class="navbar-toggler"

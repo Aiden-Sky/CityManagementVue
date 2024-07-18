@@ -6,32 +6,59 @@
         <img src="/imgs/symbo.png" alt="Logo" class="logo">
         <h1 class="mb-0 ml-3" style="padding-left: 10px">市政举报</h1>
       </div>
-      <h2 class="mb-0">统一身份认证平台</h2>
+      <h2 class="mb-0">统一身份认证</h2>
     </header>
     <main class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 172px);">
       <div class="login-container card p-4">
         <div class="login-tabs mb-3">
-          个人登陆
+          <button @click="showLogin" class="btn" :class="{ active: isLogin }">个人登陆</button>
+          <button @click="showRegister" class="btn" :class="{ active: isRegister }">注册</button>
+          <button @click="showForgotPassword" class="btn" :class="{ active: isForgotPassword }">忘记密码</button>
         </div>
-        <div v-if="isPersonalLogin">
+        <div v-if="isLogin">
           <input type="text" class="form-control my-2" placeholder="用户名/手机号/身份证号" v-model="username">
           <input type="password" class="form-control my-2" placeholder="密码" v-model="password">
           <div class="d-flex align-items-center my-2">
-            <input type="text" class="form-control" style="width: 200px" placeholder="请输入验证码" v-model="captcha">
+            <input type="text" class="form-control" style="width: 150px" placeholder="请输入验证码" v-model="captcha">
             <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img ml-2" alt="验证码">
             <button class="refresh-button btn btn-secondary ml-2" @click="refreshCaptcha">刷新</button>
           </div>
           <button class="login-button btn btn-danger w-100 mt-3" @click="login">登录</button>
         </div>
+        <div v-if="isRegister">
+          <input type="text" class="form-control my-2" placeholder="用户名" v-model="registerUsername">
+          <input type="password" class="form-control my-2" placeholder="密码" v-model="registerPassword">
+          <input type="phone" class="form-control my-2" placeholder="手机号" v-model="registphone">
+          <input type="email" class="form-control my-2" placeholder="邮箱号" v-model="registerEmail">
+          <input type="text" class="form-control my-2" placeholder="身份证号" v-model="registerIDNumber">
+          <div class="d-flex align-items-center my-2">
+          <input type="text" class="form-control" style="width: 150px" placeholder="请输入验证码" v-model="captcha">
+          <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img ml-2" alt="验证码">
+          <button class="refresh-button btn btn-secondary ml-2" @click="refreshCaptcha">刷新</button>
+          </div>
+          <button class="login-button btn btn-danger w-100 mt-3" @click="register">注册</button>
+
+        </div>
+        <div v-if="isForgotPassword">
+          <input type="text" class="form-control my-2" placeholder="请输入账号" v-model="forgotPasswordaccount">
+          <input type="phone" class="form-control my-2" placeholder="请输入注册手机号" v-model="forgotPasswordphone">
+          <input type="text" class="form-control my-2" placeholder="请输入身份证号" v-model="forgotPasswordIDNumber">
+          <div class="d-flex align-items-center my-2">
+          <input type="text" class="form-control" style="width: 150px" placeholder="请输入验证码" v-model="captcha">
+          <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img ml-2" alt="验证码">
+          <button class="refresh-button btn btn-secondary ml-2" @click="refreshCaptcha">刷新</button>
+          </div>
+          <button class="login-button btn btn-danger w-100 mt-3" @click="resetPassword">重置密码</button>
+
+        </div>
         <div v-if="errorMessage" class="alert alert-danger mt-3">
           {{ errorMessage }}
         </div>
-        <div class="additional-links mt-3 text-center">
-          <a href="#">立即注册</a> | <a href="#">忘记密码?</a>
+        <div class="additional-links mt-3 text-center" v-if="isLogin">
+          <a href="#" @click="showRegister">立即注册</a> | <a href="#" @click="showForgotPassword">忘记密码?</a>
         </div>
       </div>
     </main>
-
     <footer class="text-center mt-4 colorgold">
       <p>关于我们 | 站点地图 | 建议意见 | 法律声明</p>
     </footer>
@@ -44,46 +71,128 @@ import axios from "axios";
 export default {
   data() {
     return {
-      isPersonalLogin: true,
+      isLogin: true,
+      isRegister: false,
+      isForgotPassword: false,
       username: '',
       password: '',
       captcha: '',
-      captchaUrl: '/city/captcha', // 假设验证码的URL
+      captchaUrl: '/city/captcha',
+      registerUsername: '',
+      registerPassword: '',
+      registerEmail: '',
+      forgotPasswordEmail: '',
       errorMessage: ''
     };
   },
+  mounted() {
+    this.refreshCaptcha(); // 在组件挂载后立即调用
+  },
   methods: {
+    showLogin() {
+      this.isLogin = true;
+      this.isRegister = false;
+      this.isForgotPassword = false;
+    },
+    showRegister() {
+      this.isLogin = false;
+      this.isRegister = true;
+      this.isForgotPassword = false;
+    },
+    showForgotPassword() {
+      this.isLogin = false;
+      this.isRegister = false;
+      this.isForgotPassword = true;
+    },
     async login() {
       try {
         const url = `city/login?account=${encodeURIComponent(this.username)}&password=${encodeURIComponent(this.password)}`;
         const response = await axios.post(url);
-        // 处理响应
-        console.log(response.data);
-        const token = response.data;
-        localStorage.setItem('jwtToken', token);
 
-        this.$router.push('/guestHome'); // 跳转到/home页面
+         const data = response.data;
+    let token;
+    if (typeof data === 'object' && data !== null && data.hasOwnProperty('isManage')) {
+      // 用户是管理员
+      token = data.token;
+      this.$router.push('/manageHome');
+    } else {
+      // 用户不是管理员
+      token = data;
+      this.$router.push('/guestHome');
+    }
+
+    // 将 token 存储在 localStorage 中
+    localStorage.setItem('jwtToken', token);
       } catch (error) {
         console.error(error);
         if (error.response) {
-          // 从响应中提取错误信息
-          const errorMessage = error.response.data; // 假设错误信息在字段名为 'message'
-          console.error('Login failed:', errorMessage);
-          this.errorMessage = errorMessage; // 直接使用服务器返回的错误信息
+          this.errorMessage = error.response.data;
         } else {
-          console.error('Error occurred:', error.message);
-          this.errorMessage = '发生错误，请稍后再试'; // 提示用户发生其他错误
+          this.errorMessage = '发生错误，请稍后再试';
         }
-
-        // 设置定时器，3秒后隐藏错误消息
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 3000);
+      }
+    },
+    async register() {
+      try {
+        const url = `city/register`;
+        const payload = {
+          username: this.registerUsername,
+          password: this.registerPassword,
+          email: this.registerEmail
+        };
+        const response = await axios.post(url, payload);
+        console.log(response.data);
+        this.showLogin();
+      } catch (error) {
+        console.error(error);
+        if (error.response) {
+          this.errorMessage = error.response.data;
+        } else {
+          this.errorMessage = '发生错误，请稍后再试';
+        }
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 3000);
+      }
+    },
+    async resetPassword() {
+      try {
+        const url = `city/resetPassword`;
+        const payload = {email: this.forgotPasswordEmail};
+        const response = await axios.post(url, payload);
+        console.log(response.data);
+        this.showLogin();
+      } catch (error) {
+        console.error(error);
+        if (error.response) {
+          this.errorMessage = error.response.data;
+        } else {
+          this.errorMessage = '发生错误，请稍后再试';
+        }
         setTimeout(() => {
           this.errorMessage = '';
         }, 3000);
       }
     },
     refreshCaptcha() {
-      // 更新验证码URL以刷新图片
-      this.captchaUrl = `/city/captcha?${new Date().getTime()}`;
+      const timestamp = new Date().getTime();
+      this.captchaUrl = `/city/getcapchar?${timestamp}`;
+    },
+    async verifyCaptcha() {
+      try {
+        const response = await axios.post('/city/verify', null, {
+          params: {
+            captcha: this.captchaInput
+          }
+        });
+        alert(response.data);
+      } catch (error) {
+        console.error(error);
+        this.errorMessage = '验证码验证失败，请稍后再试';
+      }
     }
   }
 };
@@ -128,6 +237,7 @@ header {
   width: 100px;
   margin-left: 10px;
 }
+
 .refresh-button {
   height: 40px;
   width: 80px;

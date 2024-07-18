@@ -41,28 +41,27 @@
             </button>
           </div>
           <div class="mb-3">
-            <label for="locationDescribe">位置描述</label>
+            <label for="locationDescribe">位置详细描述</label>
             <input type="text" class="form-control" v-model="newReport.locationDescribe">
           </div>
           <div class="mb-3">
             <label for="infoCategory">信息大类</label>
             <input type="text" class="form-control" v-model="newReport.infoCategory">
           </div>
-          <div class="mb-3">
-            <label for="severity">严重程度</label>
-            <input type="text" class="form-control" v-model="newReport.severity">
-          </div>
+
           <button type="submit" class="btn btn-success">添加</button>
-          <button class="btn btn-danger" onclick="goBack()">返回</button>
+          <button class="btn btn-danger" @click="goBack">返回</button>
         </form>
       </div>
       <div id="mapContainer" class="map-container"></div>
     </div>
   </div>
+
 </template>
 
 <script>
 import AMapLoader from "@amap/amap-jsapi-loader";
+import axios from "axios";
 
 export default {
   name: "CaseManagement",
@@ -85,6 +84,7 @@ export default {
         handlingMethod: '',
         verified: false,
         severity: '',
+        managerID: '',
       },
       map: null,
       geolocation: null
@@ -94,15 +94,28 @@ export default {
     this.initMap();
   },
   methods: {
+    goBack() {
+       // 使用 Vue Router 的方式返回上一页
+       this.$router.go(-1); // 返回上一级页面
+
+    },
     addCase() {
-      // 调用API或者其他方法来保存案件信息
-      console.log("案件信息:", this.newReport);
+        axios.post('/city/caseInfom/SetInfom', this.newReport)
+        .then(response => {
+          console.log('后端返回:', response.data);
+          // 处理响应，例如显示成功或失败消息
+           this.goBack(); // 成功保存后返回上一页
+        })
+        .catch(error => {
+          console.error('保存案件信息失败:', error);
+          // 处理错误情况
+        });
+
     },
 
     initMap() {
       AMapLoader.load({
         key: "bd2b09677fcbd6ff91a7988ecc1e88d1", // 申请好的Web端开发者Key，首次调用 load 时必填
-        version: "2.0", //
       }).then(AMap => {
         this.map = new AMap.Map("mapContainer", {
           resizeEnable: true,
@@ -154,7 +167,8 @@ export default {
         };
         reader.readAsDataURL(file);
       }
-    }
+    },
+
   }
 };
 </script>

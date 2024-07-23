@@ -2,6 +2,7 @@
   <div class="case-management">
     <div class="content">
       <div class="add-case-form">
+        <h2>在线反馈</h2> <!-- 添加标题 -->
         <form @submit.prevent="addCase">
           <!-- 表单内容 -->
           <div class="mb-3">
@@ -26,7 +27,7 @@
           </div>
 
           <div class="mb-3">
-            <label for="caseType">案件类型</label>
+            <label for="caseType">反馈类型</label>
             <input type="text" class="form-control" v-model="newReport.caseType">
           </div>
           <div class="mb-3">
@@ -49,8 +50,10 @@
             <input type="text" class="form-control" v-model="newReport.infoCategory">
           </div>
 
-          <button type="submit" class="btn btn-success">添加</button>
-          <button class="btn btn-danger" @click="goBack">返回</button>
+          <div class="form-buttons">
+            <button type="submit" class="btn btn-success">添加</button>
+            <button type="button" class="btn btn-danger" @click="goBack">返回</button>
+          </div>
         </form>
       </div>
       <div id="mapContainer" class="map-container"></div>
@@ -95,21 +98,21 @@ export default {
   },
   methods: {
     goBack() {
-       // 使用 Vue Router 的方式返回上一页
-       this.$router.go(-1); // 返回上一级页面
+      // 使用 Vue Router 的方式返回上一页
+      this.$router.go(-1); // 返回上一级页面
 
     },
     addCase() {
-        axios.post('/city/caseInfom/SetInfom', this.newReport)
-        .then(response => {
-          console.log('后端返回:', response.data);
-          // 处理响应，例如显示成功或失败消息
-           this.goBack(); // 成功保存后返回上一页
-        })
-        .catch(error => {
-          console.error('保存案件信息失败:', error);
-          // 处理错误情况
-        });
+      axios.post('/city/caseInfom/SetInfom', this.newReport)
+          .then(response => {
+            console.log('后端返回:', response.data);
+            // 处理响应，例如显示成功或失败消息
+            this.goBack(); // 成功保存后返回上一页
+          })
+          .catch(error => {
+            console.error('保存反馈信息失败:', error);
+            // 处理错误情况
+          });
 
     },
 
@@ -184,7 +187,10 @@ export default {
 }
 
 h2 {
-  color: #c3161c;
+  color: #3193bd; /* 标题颜色 */
+  font-size: 1.5rem; /* 标题字体大小 */
+  margin-bottom: 20px; /* 标题下方的间距 */
+  text-align: center; /* 标题居中 */
 }
 
 .content {
@@ -204,10 +210,15 @@ h2 {
 
 button {
   padding: 10px;
-  margin: 10px;
+  margin: 10px 0; /* 修改按钮间距 */
   border: none;
-  width: 20%;
+  width: 100%; /* 修改按钮宽度 */
   color: #fff;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
 }
 
 .map-container {

@@ -13,16 +13,16 @@
           <div class="col-md-6">
             <div class="card text-center" @click="currentModule = 'viewCases'">
               <div class="card-body">
-                <h5 class="card-title">查看案件</h5>
-                <p class="card-text">浏览并管理所有案件。</p>
+                <h5 class="card-title">查看反馈</h5>
+                <p class="card-text">浏览并管理所有事件。</p>
               </div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card text-center" @click="currentModule = 'updateCase'">
               <div class="card-body" >
-                <h5 class="card-title">修改案件进度</h5>
-                <p class="card-text">更新案件的处理状态。</p>
+                <h5 class="card-title">事件进度管理</h5>
+                <p class="card-text">更新事件的处理状态。</p>
               </div>
             </div>
           </div>

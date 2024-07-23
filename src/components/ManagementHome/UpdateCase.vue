@@ -1,8 +1,8 @@
 <template>
   <div class="update-case">
-    <h2 class="mb-4">修改案件进度</h2>
+    <h2 class="mb-4">进度管理</h2>
     <div v-if="caseItem" class="case-details">
-      <h3>案件ID: {{ caseItem.CaseID }}</h3>
+      <h3>事件ID: {{ caseItem.CaseID }}</h3>
       <p>描述: {{ caseItem.Description }}</p>
       <div class="form-group">
         <label for="status">状态</label>
@@ -28,7 +28,7 @@ export default {
   },
   methods: {
     updateCase() {
-      alert(`案件 ${this.caseItem.CaseID} 的状态已更新为 ${this.caseItem.Status}`);
+      alert(`事件 ${this.caseItem.CaseID} 的状态已更新为 ${this.caseItem.Status}`);
       // 在实际应用中，这里应发送请求到服务器更新案件状态
     }
   }

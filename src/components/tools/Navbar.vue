@@ -26,7 +26,7 @@
             <router-link class="nav-link" to="/home?page=userManagement">用户管理</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/home?page=accept">监督受理</router-link>
+            <router-link class="nav-link" to="/home?page=accept">反馈受理</router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/home?page=geographyPage">地理信息</router-link>

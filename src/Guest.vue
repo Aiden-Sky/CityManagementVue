@@ -4,7 +4,7 @@
             style="background-color: #c3161c; color: white;">
       <div class="d-flex align-items-center">
         <img src="/imgs/symbo.png" alt="Logo" class="logo">
-        <h1 class="mb-0 ml-3" style="padding-left: 10px">市政举报</h1>
+        <h1 class="mb-0 ml-3" style="padding-left: 10px">市政反馈</h1>
       </div>
       <h2 class="mb-0">统一身份认证</h2>
     </header>
@@ -106,6 +106,12 @@ export default {
     },
     async login() {
       try {
+        // const isCaptchaValid = await this.verifyCaptcha();
+        //
+        // if (!isCaptchaValid) {
+        //   this.errorMessage = '验证码错误，请重新输入';
+        //   return false;
+        // }
         const url = `city/login?account=${encodeURIComponent(this.username)}&password=${encodeURIComponent(this.password)}`;
         const response = await axios.post(url);
 
@@ -183,15 +189,16 @@ export default {
     },
     async verifyCaptcha() {
       try {
-        const response = await axios.post('/city/verify', null, {
+        const response = await axios.post('/city/verifycapcha', null, {
           params: {
-            captcha: this.captchaInput
+            captcha: this.captcha
           }
         });
-        alert(response.data);
+        if (response.data === "验证码正确") return true;
       } catch (error) {
         console.error(error);
         this.errorMessage = '验证码验证失败，请稍后再试';
+        return false;
       }
     }
   }

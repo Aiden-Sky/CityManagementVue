@@ -90,23 +90,28 @@
 
     <!-- Manager Selection Modal -->
     <div class="modal" tabindex="-1" role="dialog" v-if="showManagerModal">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">选择承办人</h5>
-            <button type="button" class="close" @click="showManagerModal = false">&times;</button>
-          </div>
-          <div class="modal-body">
-            <select v-model="selectedManagerID">
-              <option v-for="manager in managers" :key="manager.id" :value="manager.id">{{ manager.name }}</option>
+      <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">选择承办人</h5>
+          <button type="button" class="btn-close" @click="showManagerModal = false" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="managerSelect" class="form-label">承办人列表</label>
+            <select v-model="selectedManagerID" class="form-select" id="managerSelect">
+              <option v-for="manager in managers" :key="manager.managerID" :value="manager.managerID">
+                {{ manager.name }}
+              </option>
             </select>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" @click="assignManager">确认</button>
-            <button type="button" class="btn btn-secondary" @click="showManagerModal = false">取消</button>
-          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" @click="assignManager">确认</button>
+          <button type="button" class="btn btn-secondary" @click="showManagerModal = false">取消</button>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>
@@ -208,7 +213,7 @@ export default {
       this.showManagerModal = true;
     },
     fetchManagers() {
-      axios.get('/api/managers')
+      axios.get('/city/getmanagers')
         .then(response => {
           this.managers = response.data;
         })

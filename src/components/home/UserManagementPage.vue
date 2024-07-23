@@ -6,7 +6,7 @@
         <a class="nav-link" :class="{ active: activeTab === 'residents' }" @click="activeTab = 'residents'">管理市民</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" :class="{ active: activeTab === 'cityManagers' }" @click="activeTab = 'cityManagers'">管理城市管理者</a>
+        <a class="nav-link" :class="{ active: activeTab === 'cityManagers' }" @click="activeTab = 'cityManagers'">执法人员</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" :class="{ active: activeTab === 'admin' }" @click="activeTab = 'admin'">系统总管</a>

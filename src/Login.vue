@@ -20,14 +20,17 @@
       <div class="form-group">
         <input type="password" placeholder="密码" v-model="password" required/>
       </div>
-
+      <div class="form-group captcha-container">
+        <input type="text" placeholder="验证码" v-model="captchaInput" />
+      </div>
+      <div class="form-group">
+        <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img ml-2" alt="验证码">
+      </div>
       <div class="form-group">
         <a href="#" class="forgot-password">忘记密码?</a>
       </div>
       <button type="submit" class="btn btn-primary">登陆</button>
-      <div class="signup-link">
-        <button href="#" class="btn btn-secondary">注册</button>
-      </div>
+
     </form>
   </div>
 </template>
@@ -41,21 +44,46 @@ export default {
     return {
       account: '',
       password: '',
+      captchaInput: '',
+      captchaUrl: '/city/getcapchar?' + new Date().getTime(), // 初始验证码 URL
       errorMessage: '' // 用于存储错误信息
     }
   },
   methods: {
+    refreshCaptcha() {
+      const timestamp = new Date().getTime();
+      this.captchaUrl = `/city/getcapchar?${timestamp}`;
+    },
+    async verifyCaptcha() {
+      try {
+        const response = await axios.post('/city/verifycapcha', null, {
+          params: {
+            captcha: this.captchaInput
+          }
+        });
+        return response.data === '验证码正确';
+      } catch (error) {
+        console.error(error);
+        this.errorMessage = '验证码验证失败，请稍后再试';
+        return false;
+      }
+    },
     async handleSubmit() {
       try {
+        // const isCaptchaValid = await this.verifyCaptcha();
+        // if (!isCaptchaValid) {
+        //   this.errorMessage = '验证码错误';
+        //   return;
+        // }
 
         const url = `city/login?account=${encodeURIComponent(this.account)}&password=${encodeURIComponent(this.password)}`;
-        const response = await axios.post(url)
+        const response = await axios.post(url);
         // 处理响应
         console.log(response.data);
         const token = response.data;
         localStorage.setItem('jwtToken', token);
 
-         this.$router.push('/home'); // 跳转到/home页面
+        this.$router.push('/home'); // 跳转到/home页面
 
       } catch (error) {
         console.error(error);
@@ -119,6 +147,17 @@ export default {
   margin-top: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.captcha-container {
+  display: flex;
+  align-items: center;
+}
+
+.captcha-img {
+  cursor: pointer;
+  height: 40px;
+  margin-left: 10px;
 }
 
 .forgot-password {

@@ -3,14 +3,14 @@
     <header class="d-flex justify-content-between align-items-center py-4 px-3">
       <div class="d-flex align-items-center">
         <img src="/imgs/symbo.png" alt="Logo" class="logo">
-        <h1 class="mb-0 ml-3" style="padding-left: 10px">案件进度追踪</h1>
+        <h1 class="mb-0 ml-3" style="padding-left: 10px">反馈进度追踪</h1>
       </div>
       <h2 class="mb-0">用户</h2>
     </header>
 
     <div class="container my-4">
       <div class="content-wrapper">
-        <h3 class="mb-4 text-white">案件列表</h3>
+        <h3 class="mb-4 text-white">居民反馈列表</h3>
         <div class="list-group">
           <button
             v-for="caseItem in cases"
@@ -18,13 +18,13 @@
             class="list-group-item list-group-item-action"
             @click="selectCase(caseItem)"
           >
-            案件ID: {{ caseItem.CaseID }} - {{ caseItem.Description }}
+            事件ID: {{ caseItem.CaseID }} - {{ caseItem.Description }}
           </button>
         </div>
 
         <div v-if="selectedCase" class="case-details mt-4">
-          <h4>案件详细信息</h4>
-          <p><strong>案件ID:</strong> {{ selectedCase.CaseID }}</p>
+          <h4>事件详细信息</h4>
+          <p><strong>事件ID:</strong> {{ selectedCase.CaseID }}</p>
           <p><strong>描述:</strong> {{ selectedCase.Description }}</p>
           <p><strong>状态:</strong> {{ selectedCase.Status }}</p>
           <p><strong>报告时间:</strong> {{ selectedCase.CreatedDate }}</p>

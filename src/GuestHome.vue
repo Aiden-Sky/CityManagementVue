@@ -4,7 +4,7 @@
             style="background-color: #c3161c; color: white;">
       <div class="d-flex align-items-center">
         <img src="/imgs/symbo.png" alt="Logo" class="logo">
-        <h1 class="mb-0 ml-3" style="padding-left: 10px">市政举报</h1>
+        <h1 class="mb-0 ml-3" style="padding-left: 10px">市政反馈</h1>
       </div>
       <h2 class="mb-0">用户</h2>
     </header>
@@ -15,18 +15,18 @@
           <div class="col-md-6">
             <div class="card text-center">
               <div class="card-body">
-                <h5 class="card-title">添加案件</h5>
-                <p class="card-text">在此添加新的案件信息。</p>
-                <router-link to="/addcase" class="btn btn-primary">前往添加案件</router-link>
+                <h5 class="card-title">在线反馈</h5>
+                <p class="card-text">在此添加新的市政反馈。</p>
+                <router-link to="/addcase" class="btn btn-primary">前往在线反馈</router-link>
               </div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card text-center">
               <div class="card-body">
-                <h5 class="card-title">追踪案件</h5>
-                <p class="card-text">查看案件的办理进度。</p>
-                <router-link to="/tracecase" class="btn btn-primary">前往追踪案件</router-link>
+                <h5 class="card-title">追踪反馈</h5>
+                <p class="card-text">查看事件的办理进度。</p>
+                <router-link to="/tracecase" class="btn btn-primary">前往追踪反馈</router-link>
               </div>
             </div>
           </div>

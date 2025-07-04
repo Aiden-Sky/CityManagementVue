@@ -1,0 +1,69 @@
+:root {
+  /* 主题颜色变量 */
+  --theme-color: #c3161c;       /* 主题主色调 - 默认红色 */
+  --theme-color-light: #f8d7da; /* 主题浅色调 */
+  --theme-color-dark: #a50f17;  /* 主题深色调 */
+
+  /* 其他全局变量 */
+  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* 全局主题样式 */
+.theme-header {
+  background-color: var(--theme-color);
+  color: white;
+}
+
+.theme-btn {
+  background-color: var(--theme-color);
+  border-color: var(--theme-color);
+  color: white;
+}
+
+.theme-btn:hover {
+  background-color: var(--theme-color-dark);
+  border-color: var(--theme-color-dark);
+  color: white;
+}
+
+.theme-btn-outline {
+  color: var(--theme-color);
+  border-color: var(--theme-color);
+  background-color: transparent;
+}
+
+.theme-btn-outline:hover {
+  background-color: var(--theme-color);
+  color: white;
+}
+
+.theme-spinner {
+  color: var(--theme-color);
+}
+
+.theme-text {
+  color: var(--theme-color);
+}
+
+.theme-bg-light {
+  background-color: var(--theme-color-light);
+}
+
+/* 通用样式 */
+body {
+  font-family: var(--font-family-sans-serif);
+  line-height: 1.5;
+  color: #212529;
+}
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+.form-control:focus {
+  border-color: var(--theme-color);
+  box-shadow: 0 0 0 0.25rem var(--theme-color-light);
+}

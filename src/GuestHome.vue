@@ -6,7 +6,14 @@
         <img src="/imgs/symbo.png" alt="Logo" class="logo">
         <h1 class="mb-0 ml-3" style="padding-left: 10px">市政反馈</h1>
       </div>
-      <h2 class="mb-0">用户</h2>
+      <div class="d-flex align-items-center">
+        <button class="btn btn-outline-light me-2" @click="goToUserInfo">
+          <i class="bi bi-person-circle"></i> 个人中心
+        </button>
+<!--        <button class="btn btn-outline-light me-2" @click="showLoginModal">-->
+<!--          <i class="bi bi-box-arrow-in-right"></i> 登录-->
+<!--        </button>-->
+      </div>
     </header>
     <div class="background">
       <div class="container my-4 flex-grow-1">
@@ -111,6 +118,9 @@ export default {
     },
     showLoginModal() {
       this.$router.push('/login');
+    },
+    goToUserInfo() {
+      this.$router.push('/residentinfo');
     }
   }
 };

@@ -19,6 +19,7 @@
     "bootstrap-vue-next": "^0.23.1",
     "echarts": "^5.5.1",
     "particles.js": "^2.0.0",
+    "qrcode": "^1.5.4",
     "vue": "^3.4.29",
     "vue-router": "^4.4.0"
   },

@@ -40,7 +40,7 @@
         </ul>
         <span class="navbar-text">
           <a href="/home" class="nav-link d-inline-block"><i class="bi bi-house"></i> 平台首页</a>
-          <a href="/home?page=userSetting" class="nav-link d-inline-block"><i class="bi bi-gear"></i> 用户设置</a>
+          <a href="/home?page=userSetting" class="nav-link d-inline-block"><i class="bi bi-gear"></i> 管理员设置</a>
         </span>
       </div>
     </div>

@@ -7,6 +7,7 @@ import axiosInstance from "../utils/axios-instance.js";
 import AddCase from "@/components/GuestHome/AddCase.vue"; // 引入创建的axios实例
 import TraceCase from "@/components/GuestHome/TraceCase.vue";
 import ManageHome from "@/ManageHome.vue";
+import ResidentInfom from "@/components/GuestHome/ResidentInfom.vue";
 
 const routes = [
   {
@@ -46,6 +47,12 @@ const routes = [
     name: 'TrackCase',
     component: TraceCase,
     meta: {requiresResident: false}
+  },
+  {
+    path: '/residentinfo',
+    name: 'ResidentInfo',
+    component: ResidentInfom,
+    meta: {requiresResident: false} // 需要居民身份验证
   },
 
   {

@@ -117,7 +117,7 @@ export default {
 
          const data = response.data;
     let token;
-    if (typeof data === 'object' && data !== null && data.hasOwnProperty('isManage')) {
+    if (data.userType !=="Resident") {
       // 用户是管理员
       token = data.token;
       this.$router.push('/manageHome');
@@ -143,11 +143,13 @@ export default {
     },
     async register() {
       try {
-        const url = `city/register`;
+        const url = `city/resident/register`;
         const payload = {
-          username: this.registerUsername,
+          account: this.registerUsername,
           password: this.registerPassword,
-          email: this.registerEmail
+          phoneNumber: this.registphone,
+          email: this.registerEmail,
+          idNumber: this.registerIDNumber
         };
         const response = await axios.post(url, payload);
         console.log(response.data);

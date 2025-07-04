@@ -86,17 +86,17 @@ router.beforeEach(async (to, from, next) => {
         if (requiresAdmin) {
           response = await axiosInstance.post('/city/verifyToken', {
             token: token,
-            type: "admin"
+            type: "SystemAdmin"
           });
         } else if (requiresManagement) {
           response = await axiosInstance.post('/city/verifyToken', {
             token: token,
-            type: "manage"
+            type: "Manager"
           });
         } else {
           response = await axiosInstance.post('/city/verifyToken', {
             token: token,
-            type: "user"
+            type: "Resident"
           });
         }
 

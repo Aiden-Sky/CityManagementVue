@@ -76,7 +76,7 @@ export default {
         //   return;
         // }
 
-        const url = `city/login?account=${encodeURIComponent(this.account)}&password=${encodeURIComponent(this.password)}`;
+        const url = `city/admin/login?account=${encodeURIComponent(this.account)}&password=${encodeURIComponent(this.password)}`;
         const response = await axios.post(url);
         // 处理响应
         console.log(response.data);

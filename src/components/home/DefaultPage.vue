@@ -17,7 +17,7 @@
           <div class="card-body">
             <h5 class="card-title">反馈受理</h5>
             <p class="card-text">管理和处理城市管理案件</p>
-            <a href="#" class="btn btn-primary">进入</a>
+            <a href="/home?page=accept" class="btn btn-primary">进入</a>
           </div>
         </div>
       </div>
@@ -26,7 +26,7 @@
           <div class="card-body">
             <h5 class="card-title">监督指挥</h5>
             <p class="card-text">进入监督指挥数字大屏</p>
-            <a href="#" class="btn btn-primary">进入</a>
+            <a href="/home?page=commandPage" class="btn btn-primary">进入</a>
           </div>
         </div>
       </div>
@@ -35,7 +35,7 @@
           <div class="card-body">
             <h5 class="card-title">地理信息</h5>
             <p class="card-text">查看反馈事件的地理位置</p>
-            <a href="#" class="btn btn-primary">进入</a>
+            <a href="/home?page=geographyPage" class="btn btn-primary">进入</a>
           </div>
         </div>
       </div>

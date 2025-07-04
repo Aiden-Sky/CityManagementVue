@@ -88,10 +88,6 @@
         <p>图片:</p>
         <img :src="selectedReport.photoUrl" alt="Report Image"/>
       </div>
-      <div class="details-actions">
-        <button class="btn btn-warning">作废</button>
-        <button class="btn btn-primary">立案</button>
-      </div>
     </div>
 
 
@@ -105,7 +101,7 @@
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">编辑案件</h5>
+            <h5 class="modal-title">修改事件</h5>
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body">
@@ -192,13 +188,10 @@
               </div>
               <div class="mb-3">
                 <label for="photoUrl">图片</label>
-                <input type="text" class="form-control" v-model="selectedReport.photoUrl">
-                <img :src="selectedReport.photoUrl" alt="Report Image" class="img-fluid mt-2">
+                <input type="file" class="form-control" @change="handleFileUpload" accept="image/*">
+                <img v-if="previewImage" :src="previewImage" alt="Report Image" class="img-fluid mt-2">
               </div>
-              <div class="mb-3">
-                <label for="file">文件</label>
-                <input type="file" class="form-control" @change="handleFileUpload">
-              </div>
+
             </form>
           </div>
           <div class="modal-footer">
@@ -297,8 +290,9 @@ export default {
       this.showModal = true;
       this.addBlock = true;
     },
+
     saveReport() {
-      axios.put(`/api/reports/?caseID=${this.selectedReport.caseID}`, this.selectedReport)
+      axios.put(`/city/SetInfom?caseID=${this.selectedReport.caseID}`, this.selectedReport)
           .then(() => {
             this.fetchReports(this.currentPage);
             this.closeModal();

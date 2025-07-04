@@ -30,10 +30,10 @@ export default {
   data() {
     return {
       stats: [
-        {label: '受理案件', value: '681,367'},
-        {label: '按期处理率', value: '97.8%'},
-        {label: '处理率', value: '98.4%'},
-        {label: '按期结案率', value: '98.1%'}
+        {label: '受理案件', value: '23'},
+        {label: '按期处理率', value: '81.3%'},
+        {label: '处理率', value: '86.5%'},
+        {label: '按期结案率', value: '79%'}
       ]
     };
   },
@@ -125,11 +125,11 @@ export default {
             type: 'pie',
             radius: '50%',
             data: [
-              {value: 1048, name: '类型1'},
-              {value: 735, name: '类型2'},
-              {value: 580, name: '类型3'},
-              {value: 484, name: '类型4'},
-              {value: 300, name: '类型5'}
+              {value: 1048, name: '道路维修'},
+              {value: 735, name: '垃圾清理'},
+              {value: 580, name: '违章建筑'},
+              {value: 484, name: '环境污染'},
+              {value: 300, name: '噪音扰民'}
             ],
             itemStyle: {
               borderRadius: 10,
@@ -141,6 +141,7 @@ export default {
             }
           }
         ]
+
       };
       chart.setOption(option);
     },
@@ -269,64 +270,7 @@ export default {
       };
       chart.setOption(option);
     },
-    initChart5() {
-      var chart = echarts.init(document.getElementById('chart5'));
-      var option = {
-        title: {
-          text: '年度处理情况',
-          left: 'center',
-          textStyle: {
-            color: '#fff'
-          }
-        },
-        tooltip: {
-          trigger: 'axis'
-        },
-        xAxis: {
-          type: 'category',
-          boundaryGap: false,
-          data: ['2017', '2018', '2019', '2020', '2021', '2022', '2023'],
-          axisLine: {
-            lineStyle: {
-              color: '#fff'
-            }
-          },
-          axisLabel: {
-            color: '#fff'
-          }
-        },
-        yAxis: {
-          type: 'value',
-          axisLine: {
-            lineStyle: {
-              color: '#fff'
-            }
-          },
-          axisLabel: {
-            color: '#fff'
-          }
-        },
-        series: [
-          {
-            name: '处理案件',
-            type: 'line',
-            data: [820, 932, 901, 934, 1290, 1330, 1320],
-            itemStyle: {
-              color: '#1f78b4'
-            }
-          },
-          {
-            name: '按期处理',
-            type: 'line',
-            data: [800, 900, 880, 910, 1270, 1300, 1290],
-            itemStyle: {
-              color: '#33a02c'
-            }
-          }
-        ]
-      };
-      chart.setOption(option);
-    }
+
   }
 };
 </script>

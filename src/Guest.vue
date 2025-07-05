@@ -67,6 +67,7 @@
 
 <script>
 import axios from "axios";
+import { jwtDecode } from 'jwt-decode';
 
 export default {
   data() {
@@ -114,16 +115,17 @@ export default {
         // }
         const url = `city/login?account=${encodeURIComponent(this.username)}&password=${encodeURIComponent(this.password)}`;
         const response = await axios.post(url);
+        const token = response.data;
 
-        const data = response.data;
-        let token;
-        if (data.isManage) {
+        const payload = jwtDecode(token);
+
+        if (payload.userType === "SysAdmin") {
           // 用户是管理员
-          token = data.token;
+
           this.$router.push('/manageHome');
         } else {
           // 用户不是管理员
-          token = data;
+
           this.$router.push('/guestHome');
         }
 

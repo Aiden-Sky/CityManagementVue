@@ -32,9 +32,9 @@
           <input type="email" class="form-control my-2" placeholder="邮箱号" v-model="registerEmail">
           <input type="text" class="form-control my-2" placeholder="身份证号" v-model="registerIDNumber">
           <div class="d-flex align-items-center my-2">
-          <input type="text" class="form-control" style="width: 150px" placeholder="请输入验证码" v-model="captcha">
-          <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img ml-2" alt="验证码">
-          <button class="refresh-button btn btn-secondary ml-2" @click="refreshCaptcha">刷新</button>
+            <input type="text" class="form-control" style="width: 150px" placeholder="请输入验证码" v-model="captcha">
+            <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img ml-2" alt="验证码">
+            <button class="refresh-button btn btn-secondary ml-2" @click="refreshCaptcha">刷新</button>
           </div>
           <button class="login-button btn btn-danger w-100 mt-3" @click="register">注册</button>
 
@@ -44,9 +44,9 @@
           <input type="phone" class="form-control my-2" placeholder="请输入注册手机号" v-model="forgotPasswordphone">
           <input type="text" class="form-control my-2" placeholder="请输入身份证号" v-model="forgotPasswordIDNumber">
           <div class="d-flex align-items-center my-2">
-          <input type="text" class="form-control" style="width: 150px" placeholder="请输入验证码" v-model="captcha">
-          <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img ml-2" alt="验证码">
-          <button class="refresh-button btn btn-secondary ml-2" @click="refreshCaptcha">刷新</button>
+            <input type="text" class="form-control" style="width: 150px" placeholder="请输入验证码" v-model="captcha">
+            <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img ml-2" alt="验证码">
+            <button class="refresh-button btn btn-secondary ml-2" @click="refreshCaptcha">刷新</button>
           </div>
           <button class="login-button btn btn-danger w-100 mt-3" @click="resetPassword">重置密码</button>
 
@@ -115,20 +115,20 @@ export default {
         const url = `city/login?account=${encodeURIComponent(this.username)}&password=${encodeURIComponent(this.password)}`;
         const response = await axios.post(url);
 
-         const data = response.data;
-    let token;
-    if (data.userType !=="Resident") {
-      // 用户是管理员
-      token = data.token;
-      this.$router.push('/manageHome');
-    } else {
-      // 用户不是管理员
-      token = data;
-      this.$router.push('/guestHome');
-    }
+        const data = response.data;
+        let token;
+        if (data.isManage) {
+          // 用户是管理员
+          token = data.token;
+          this.$router.push('/manageHome');
+        } else {
+          // 用户不是管理员
+          token = data;
+          this.$router.push('/guestHome');
+        }
 
-    // 将 token 存储在 localStorage 中
-    localStorage.setItem('jwtToken', token);
+        // 将 token 存储在 localStorage 中
+        localStorage.setItem('jwtToken', token);
       } catch (error) {
         console.error(error);
         if (error.response) {

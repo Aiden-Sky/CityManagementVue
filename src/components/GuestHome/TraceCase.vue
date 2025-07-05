@@ -17,10 +17,10 @@
           <div class="row align-items-center">
             <div class="col-md-6">
               <div class="input-group">
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  placeholder="输入事件ID或关键词搜索..." 
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="输入事件ID或关键词搜索..."
                   v-model="searchQuery"
                   @keyup.enter="searchCases"
                 >
@@ -46,19 +46,19 @@
             </div>
           </div>
         </div>
-        
+
         <div class="row">
           <!-- 左侧列表 -->
           <div class="col-md-4">
             <h3 class="list-title mb-3">居民反馈列表</h3>
-            
+
             <div v-if="isLoading" class="text-center py-5">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">加载中...</span>
               </div>
               <p class="mt-2">加载中...</p>
             </div>
-            
+
             <div v-else-if="filteredCases.length === 0" class="no-cases text-center py-5">
               <i class="bi bi-inbox-fill"></i>
               <p>暂无反馈记录</p>
@@ -66,31 +66,31 @@
                 创建新反馈
               </button>
             </div>
-            
+
             <div v-else class="list-group case-list">
               <button
-                v-for="caseItem in filteredCases"
-                :key="caseItem.CaseID"
+                v-for="caseItem in cases"
+                :key="caseItem.caseID"
                 class="list-group-item list-group-item-action"
-                :class="{ 'active': selectedCase && selectedCase.CaseID === caseItem.CaseID }"
+                :class="{ 'active': selectedCase && selectedCase.caseID === caseItem.caseID }"
                 @click="selectCase(caseItem)"
               >
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <span class="case-id">ID: {{ caseItem.CaseID }}</span>
-                    <div class="case-title">{{ caseItem.Description }}</div>
+                    <span class="case-id">ID: {{ caseItem.caseID }}</span>
+                    <div class="case-title">{{ caseItem.description }}</div>
                   </div>
-                  <span class="status-badge" :class="getStatusClass(caseItem.Status)">
-                    {{ caseItem.Status }}
+                  <span class="status-badge" :class="getStatusClass(caseItem.status)">
+                    {{ caseItem.status }}
                   </span>
                 </div>
                 <div class="case-meta">
-                  <small>{{ caseItem.CreatedDate }}</small>
+                  <small>{{ caseItem.createdDate }}</small>
                 </div>
               </button>
             </div>
           </div>
-          
+
           <!-- 右侧详情 -->
           <div class="col-md-8">
             <div v-if="selectedCase" class="case-details">
@@ -101,15 +101,15 @@
                 <div class="card-body">
                   <div class="row mb-4">
                     <div class="col-md-6">
-                      <p><strong>事件ID:</strong> {{ selectedCase.CaseID }}</p>
-                      <p><strong>报告时间:</strong> {{ selectedCase.CreatedDate }}</p>
-                      <p><strong>反馈类型:</strong> {{ selectedCase.CaseType || '未分类' }}</p>
-                      <p><strong>反馈人:</strong> {{ selectedCase.Reporter }}</p>
+                      <p><strong>事件ID:</strong> {{ selectedCase.caseID }}</p>
+                      <p><strong>报告时间:</strong> {{ selectedCase.createdDate }}</p>
+                      <p><strong>反馈类型:</strong> {{ selectedCase.caseType || '未分类' }}</p>
+                      <p><strong>反馈人:</strong> {{ selectedCase.reporter }}</p>
                     </div>
                     <div class="col-md-6">
-                      <p><strong>当前状态:</strong> 
-                        <span class="status-badge" :class="getStatusClass(selectedCase.Status)">
-                          {{ selectedCase.Status }}
+                      <p><strong>当前状态:</strong>
+                        <span class="status-badge" :class="getStatusClass(selectedCase.status)">
+                          {{ selectedCase.status }}
                         </span>
                       </p>
                       <p><strong>处理时长:</strong> {{ calculateProcessingTime(selectedCase) }}</p>
@@ -117,12 +117,12 @@
                       <p><strong>处理方式:</strong> {{ selectedCase.HandlingMethod || '暂无' }}</p>
                     </div>
                   </div>
-                  
+
                   <h5>问题描述</h5>
                   <div class="description-box mb-3">
                     {{ selectedCase.Description }}
                   </div>
-                  
+
                   <!-- 现场图片 -->
                   <div v-if="selectedCase.PhotoUrl" class="mb-4">
                     <h5>现场图片</h5>
@@ -130,7 +130,7 @@
                       <img :src="selectedCase.PhotoUrl" alt="现场图片" class="case-image img-fluid">
                     </div>
                   </div>
-                  
+
                   <!-- 进度追踪 -->
                   <h5>处理进度</h5>
                   <div class="timeline">
@@ -144,44 +144,44 @@
                         <p>您的反馈已成功提交至系统</p>
                       </div>
                     </div>
-                    
-                    <div class="timeline-item" :class="{ 'completed': selectedCase.Status !== '未处理' }">
-                      <div class="timeline-badge" :class="selectedCase.Status !== '未处理' ? 'bg-primary' : 'bg-secondary'">
-                        <i class="bi" :class="selectedCase.Status !== '未处理' ? 'bi-check' : 'bi-clock'"></i>
+
+                    <div class="timeline-item" :class="{ 'completed': selectedCase.status !== '未处理' }">
+                      <div class="timeline-badge" :class="selectedCase.status !== '未处理' ? 'bg-primary' : 'bg-secondary'">
+                        <i class="bi" :class="selectedCase.status !== '未处理' ? 'bi-check' : 'bi-clock'"></i>
                       </div>
                       <div class="timeline-content">
                         <h6 class="timeline-title">问题审核</h6>
                         <p class="timeline-date">{{ selectedCase.VerifiedDate || '待处理' }}</p>
-                        <p>{{ selectedCase.Status !== '未处理' ? '您的反馈已由管理员审核' : '等待管理员审核' }}</p>
+                        <p>{{ selectedCase.status !== '未处理' ? '您的反馈已由管理员审核' : '等待管理员审核' }}</p>
                       </div>
                     </div>
-                    
-                    <div class="timeline-item" :class="{ 'completed': selectedCase.Status === '处理中' || selectedCase.Status === '已完成' }">
-                      <div class="timeline-badge" :class="selectedCase.Status === '处理中' || selectedCase.Status === '已完成' ? 'bg-primary' : 'bg-secondary'">
-                        <i class="bi" :class="selectedCase.Status === '处理中' || selectedCase.Status === '已完成' ? 'bi-check' : 'bi-clock'"></i>
+
+                    <div class="timeline-item" :class="{ 'completed': selectedCase.status === '处理中' || selectedCase.status === '已完成' }">
+                      <div class="timeline-badge" :class="selectedCase.status === '处理中' || selectedCase.status === '已完成' ? 'bg-primary' : 'bg-secondary'">
+                        <i class="bi" :class="selectedCase.status === '处理中' || selectedCase.status === '已完成' ? 'bi-check' : 'bi-clock'"></i>
                       </div>
                       <div class="timeline-content">
                         <h6 class="timeline-title">问题处理</h6>
                         <p class="timeline-date">{{ selectedCase.ProcessDate || '待处理' }}</p>
-                        <p>{{ selectedCase.Status === '处理中' || selectedCase.Status === '已完成' ? '反馈正在处理中' : '等待处理' }}</p>
+                        <p>{{ selectedCase.status === '处理中' || selectedCase.status === '已完成' ? '反馈正在处理中' : '等待处理' }}</p>
                       </div>
                     </div>
-                    
-                    <div class="timeline-item" :class="{ 'completed': selectedCase.Status === '已完成' }">
-                      <div class="timeline-badge" :class="selectedCase.Status === '已完成' ? 'bg-primary' : 'bg-secondary'">
-                        <i class="bi" :class="selectedCase.Status === '已完成' ? 'bi-check' : 'bi-clock'"></i>
+
+                    <div class="timeline-item" :class="{ 'completed': selectedCase.status === '已完成' }">
+                      <div class="timeline-badge" :class="selectedCase.status === '已完成' ? 'bg-primary' : 'bg-secondary'">
+                        <i class="bi" :class="selectedCase.status === '已完成' ? 'bi-check' : 'bi-clock'"></i>
                       </div>
                       <div class="timeline-content">
                         <h6 class="timeline-title">问题解决</h6>
                         <p class="timeline-date">{{ selectedCase.ClosedDate || '待完成' }}</p>
-                        <p>{{ selectedCase.Status === '已完成' ? '问题已解决' : '问题处理中' }}</p>
+                        <p>{{ selectedCase.status === '已完成' ? '问题已解决' : '问题处理中' }}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div v-else class="no-selection text-center py-5">
               <i class="bi bi-arrow-left-circle"></i>
               <p>请从左侧列表选择一个反馈查看详情</p>
@@ -214,100 +214,44 @@ export default {
   computed: {
     filteredCases() {
       let result = this.cases;
-      
+
       // 应用状态筛选
       if (this.activeFilter) {
-        result = result.filter(item => item.Status === this.activeFilter);
+        result = result.filter(item => item.status === this.activeFilter);
       }
-      
+
       // 应用搜索筛选
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase();
         result = result.filter(item => {
           return (
-            item.CaseID.toString().includes(query) ||
-            (item.Description && item.Description.toLowerCase().includes(query)) ||
-            (item.LocationDescribe && item.LocationDescribe.toLowerCase().includes(query))
+            item.caseID.toString().includes(query) ||
+            (item.description && item.description.toLowerCase().includes(query)) ||
+            (item.locationDescribe && item.locationDescribe.toLowerCase().includes(query))
           );
         });
       }
-      
+
       return result;
     }
   },
   methods: {
     fetchCases() {
       this.isLoading = true;
-      
-      // 在实际应用中，应该请求后端API获取数据
-      // axios.get('/city/caseInfom/GetInfom')
-      //   .then(response => {
-      //     this.cases = response.data;
-      //     this.isLoading = false;
-      //   })
-      //   .catch(error => {
-      //     console.error('获取反馈列表失败:', error);
-      //     this.isLoading = false;
-      //   });
-      
-      // 模拟API请求延迟
-      setTimeout(() => {
-        this.cases = [
-          {
-            CaseID: 1,
-            Description: "道路坑洼需要修复",
-            Status: "处理中",
-            CreatedDate: "2024-07-17",
-            CaseType: "道路维修",
-            Reporter: "王小明",
-            LocationDescribe: "和平路与民族大道交叉口",
-            Location: "114.31,30.52",
-            HandlingMethod: "已派遣道路修复团队",
-            VerifiedDate: "2024-07-18",
-            ProcessDate: "2024-07-19",
-            PhotoUrl: "https://img.zcool.cn/community/016ba8554b952f000001bf72338727.jpg"
-          },
-          {
-            CaseID: 2,
-            Description: "路灯故障，晚上无法照明",
-            Status: "未处理",
-            CreatedDate: "2024-07-16",
-            CaseType: "公共设施",
-            Reporter: "李明",
-            LocationDescribe: "文化路78号路灯",
-            Location: "114.29,30.50",
-            HandlingMethod: "",
-          },
-          {
-            CaseID: 3,
-            Description: "小区绿化带垃圾堆积",
-            Status: "已完成",
-            CreatedDate: "2024-07-14",
-            CaseType: "环境卫生",
-            Reporter: "张华",
-            LocationDescribe: "阳光小区东门",
-            Location: "114.30,30.51",
-            HandlingMethod: "环卫部门已清理完毕",
-            VerifiedDate: "2024-07-15",
-            ProcessDate: "2024-07-16",
-            ClosedDate: "2024-07-17",
-          },
-          {
-            CaseID: 4,
-            Description: "公交站牌损坏",
-            Status: "处理中",
-            CreatedDate: "2024-07-15",
-            CaseType: "公共设施",
-            Reporter: "刘芳",
-            LocationDescribe: "光谷大道公交站",
-            Location: "114.32,30.53",
-            HandlingMethod: "已安排维修人员",
-            VerifiedDate: "2024-07-16",
-            ProcessDate: "2024-07-18",
-          },
-        ];
-        this.isLoading = false;
-      }, 800);
+      const headers = {
+        'Authorization':localStorage.getItem('jwtToken')
+      };
+      axios.get('/city/caseInfom/getInfoms?page=1&pageSize=9999',{headers})
+          .then(response => {
+            // 请求成功，将返回数据赋值给 cases
+            this.cases = response.data.reports;
+            this.isLoading = false;
+          })
+          .catch(error => {
+            // 请求失败，打印错误信息
+            console.error('获取反馈列表失败:', error);
+            this.isLoading = false;
+          });
     },
     selectCase(caseItem) {
       this.selectedCase = caseItem;
@@ -335,19 +279,19 @@ export default {
       }
     },
     calculateProcessingTime(caseItem) {
-      if (caseItem.Status === '未处理') {
+      if (caseItem.status === '未处理') {
         return '暂未处理';
       }
-      
-      if (caseItem.ClosedDate) {
+
+      if (caseItem.closedDate) {
         // 如果已关闭，计算从创建到关闭的时间
-        const createdDate = new Date(caseItem.CreatedDate);
-        const closedDate = new Date(caseItem.ClosedDate);
+        const createdDate = new Date(caseItem.createdDate);
+        const closedDate = new Date(caseItem.closedDate);
         const diffDays = Math.round((closedDate - createdDate) / (1000 * 60 * 60 * 24));
         return `${diffDays}天`;
       } else {
         // 如果未关闭，计算从创建到现在的时间
-        const createdDate = new Date(caseItem.CreatedDate);
+        const createdDate = new Date(caseItem.createdDate);
         const today = new Date();
         const diffDays = Math.round((today - createdDate) / (1000 * 60 * 60 * 24));
         return `${diffDays}天（进行中）`;
@@ -596,15 +540,15 @@ header {
   .content-wrapper {
     padding: 15px;
   }
-  
+
   .case-list {
     max-height: 300px;
   }
-  
+
   .timeline {
     padding-left: 30px;
   }
-  
+
   .timeline-badge {
     width: 30px;
     height: 30px;

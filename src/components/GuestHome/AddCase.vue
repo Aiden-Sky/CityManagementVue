@@ -64,7 +64,7 @@
 
 <script>
 import AMapLoader from "@amap/amap-jsapi-loader";
-import axios from "axios";
+import axios, {AxiosHeaders} from "axios";
 
 export default {
   name: "CaseManagement",
@@ -103,7 +103,12 @@ export default {
 
     },
     addCase() {
-      axios.post('/city/caseInfom/SetInfom', this.newReport)
+      this.newReport.status = '未处理';
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization':localStorage.getItem('jwtToken')
+      };
+      axios.post('/city/caseInfom/SetInfom', JSON.stringify(this.newReport),{headers})
           .then(response => {
             console.log('后端返回:', response.data);
             // 处理响应，例如显示成功或失败消息

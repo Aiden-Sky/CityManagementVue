@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
+import {ref, onMounted, reactive} from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import {useRouter} from 'vue-router';
 
 const router = useRouter();
-const userInfo = reactive({
+const userInfo = ref({
   account: '',
   name: '',
   sex: null,
@@ -13,7 +13,8 @@ const userInfo = reactive({
   idNumber: '',
   email: '',
   phoneNumber: '',
-  isActive: ''
+  isActive: '',
+  passwordHash:''
 });
 
 const passwordForm = reactive({
@@ -29,7 +30,7 @@ const message = ref('');
 const messageType = ref('');
 
 // 获取用户信息
-const fetchUserInfo = async () => {
+const fetchUserInfo = () => {
   loading.value = true;
   try {
     const token = localStorage.getItem('jwtToken');
@@ -38,20 +39,18 @@ const fetchUserInfo = async () => {
       return;
     }
 
-    const response = await axios.get('/city/resident/info', {
+    const response = axios.get('/city/resident/info', {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `${token}`
+      }
+    }).then(res => {
+      userInfo.value = res.data;
+      // 格式化生日日期
+      if (userInfo.value.dateOfBirthday) {
+        const date = new Date(userInfo.value.dateOfBirthday);
+        userInfo.value.dateOfBirthday = date.toISOString().split('T')[0];
       }
     });
-
-    if (response.data) {
-      Object.assign(userInfo, response.data);
-      // 格式化生日日期
-      if (userInfo.dateOfBirthday) {
-        const date = new Date(userInfo.dateOfBirthday);
-        userInfo.dateOfBirthday = date.toISOString().split('T')[0];
-      }
-    }
   } catch (error) {
     console.error('获取用户信息失败:', error);
     showMessage('获取用户信息失败，请重试', 'error');
@@ -61,7 +60,7 @@ const fetchUserInfo = async () => {
 };
 
 // 更新用户信息
-const updateUserInfo = async () => {
+const updateUserInfo = () => {
   loading.value = true;
   try {
     const token = localStorage.getItem('jwtToken');
@@ -70,16 +69,16 @@ const updateUserInfo = async () => {
       return;
     }
 
-    const response = await axios.put('/city/resident/update', userInfo, {
+    const response = axios.put('/city/resident/update', userInfo.value, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `${token}`
       }
-    });
-
-    if (response.status === 200) {
+    }).then(res => {
       showMessage('个人信息更新成功', 'success');
       isEditing.value = false;
-    }
+    });
+
+
   } catch (error) {
     console.error('更新用户信息失败:', error);
     showMessage('更新失败，请重试', 'error');
@@ -89,7 +88,7 @@ const updateUserInfo = async () => {
 };
 
 // 修改密码
-const changePassword = async () => {
+const changePassword = () => {
   // 验证密码
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
     showMessage('两次输入的密码不一致', 'error');
@@ -108,23 +107,20 @@ const changePassword = async () => {
       router.push('/login');
       return;
     }
-
-    const response = await axios.post('/city/resident/changePassword', {
-      oldPassword: passwordForm.oldPassword,
-      newPassword: passwordForm.newPassword
-    }, {
+    userInfo.value.passwordHash = passwordForm.confirmPassword;
+    const response = axios.put('/city/resident/update', userInfo.value, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `${token}`
       }
-    });
-
-    if (response.status === 200) {
+    }).then(res => {
       showMessage('密码修改成功', 'success');
       isChangingPassword.value = false;
       passwordForm.oldPassword = '';
       passwordForm.newPassword = '';
       passwordForm.confirmPassword = '';
-    }
+    });
+
+
   } catch (error) {
     console.error('修改密码失败:', error);
     showMessage('修改密码失败，请确认原密码是否正确', 'error');
@@ -215,11 +211,13 @@ onMounted(() => {
                     <label class="form-label">性别</label>
                     <div>
                       <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" v-model="userInfo.sex" :value="true" id="male" :disabled="!isEditing">
+                        <input class="form-check-input" type="radio" v-model="userInfo.sex" :value="true" id="male"
+                               :disabled="!isEditing">
                         <label class="form-check-label" for="male">男</label>
                       </div>
                       <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" v-model="userInfo.sex" :value="false" id="female" :disabled="!isEditing">
+                        <input class="form-check-input" type="radio" v-model="userInfo.sex" :value="false" id="female"
+                               :disabled="!isEditing">
                         <label class="form-check-label" for="female">女</label>
                       </div>
                     </div>
@@ -237,7 +235,8 @@ onMounted(() => {
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">状态</label>
-                    <input type="text" class="form-control" :value="userInfo.isActive === '1' ? '正常' : '禁用'" disabled>
+                    <input type="text" class="form-control" :value="userInfo.isActive === '1' ? '正常' : '禁用'"
+                           disabled>
                   </div>
                 </div>
 
@@ -354,7 +353,7 @@ header {
 
 .card-header {
   background-color: #f8f9fa;
-  border-bottom: 1px solid rgba(0,0,0,.125);
+  border-bottom: 1px solid rgba(0, 0, 0, .125);
 }
 
 .container {

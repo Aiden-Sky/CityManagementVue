@@ -51,7 +51,7 @@
           </div>
 
           <div class="form-buttons">
-            <button type="submit" class="btn btn-success">添加</button>
+            <button type="submit" class="btn btn-success" @click="addCase">添加</button>
             <button type="button" class="btn btn-danger" @click="goBack">返回</button>
           </div>
         </form>
@@ -108,13 +108,15 @@ export default {
         'Content-Type': 'application/json',
         'Authorization':localStorage.getItem('jwtToken')
       };
-      axios.post('/city/caseInfom/SetInfom', JSON.stringify(this.newReport),{headers})
+      axios.post('/city/caseInfom/reportCase', JSON.stringify(this.newReport),{headers})
           .then(response => {
             console.log('后端返回:', response.data);
             // 处理响应，例如显示成功或失败消息
+            alert(response.data);
             this.goBack(); // 成功保存后返回上一页
           })
           .catch(error => {
+            alert(error);
             console.error('保存反馈信息失败:', error);
             // 处理错误情况
           });

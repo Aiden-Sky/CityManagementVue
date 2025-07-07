@@ -113,14 +113,14 @@
                         </span>
                       </p>
                       <p><strong>处理时长:</strong> {{ calculateProcessingTime(selectedCase) }}</p>
-                      <p><strong>位置:</strong> {{ selectedCase.LocationDescribe || '未知' }}</p>
+                      <p><strong>位置:</strong> {{ selectedCase.locationDescribe || '未知' }}</p>
                       <p><strong>处理方式:</strong> {{ selectedCase.HandlingMethod || '暂无' }}</p>
                     </div>
                   </div>
 
                   <h5>问题描述</h5>
                   <div class="description-box mb-3">
-                    {{ selectedCase.Description }}
+                    {{ selectedCase.description }}
                   </div>
 
                   <!-- 现场图片 -->
@@ -162,7 +162,7 @@
                       </div>
                       <div class="timeline-content">
                         <h6 class="timeline-title">问题处理</h6>
-                        <p class="timeline-date">{{ selectedCase.ProcessDate || '待处理' }}</p>
+                        <p class="timeline-date">{{ selectedCase.processingCases || '待处理' }}</p>
                         <p>{{ selectedCase.status === '处理中' || selectedCase.status === '已完成' ? '反馈正在处理中' : '等待处理' }}</p>
                       </div>
                     </div>
@@ -239,17 +239,23 @@ export default {
     fetchCases() {
       this.isLoading = true;
       const headers = {
-        'Authorization':localStorage.getItem('jwtToken')
+        'Authorization': localStorage.getItem('jwtToken')
       };
-      axios.get('/city/caseInfom/getInfoms?page=1&pageSize=9999',{headers})
+
+      axios.get('/city/caseInfom/getMyReports?page=1&pageSize=9999', { headers })
           .then(response => {
-            // 请求成功，将返回数据赋值给 cases
-            this.cases = response.data.reports;
+            // 后端直接返回 List<CaseInfom>，不包裹在 reports 中
+            this.cases = response.data;
             this.isLoading = false;
           })
           .catch(error => {
-            // 请求失败，打印错误信息
-            console.error('获取反馈列表失败:', error);
+            console.error('获取我的上报案件失败:', error);
+
+            // 401 未授权时可选：跳转登录或提示
+            if (error.response && error.response.status === 401) {
+              this.$message?.error?.('身份验证失败，请重新登录');
+            }
+
             this.isLoading = false;
           });
     },

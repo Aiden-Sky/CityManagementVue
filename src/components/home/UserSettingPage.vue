@@ -312,31 +312,23 @@ export default {
     async fetchUserInfo() {
       this.loading = true;
       try {
-        if (isDevelopment) {
-          // 使用模拟API
-          const data = await mockApi.getAdminInfo();
-          this.user = { ...data };
+        // 使用实际API
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+          this.$router.push('/login');
+          return;
+        }
+
+        const response = await axios.get('/city/admin/info', {
+          headers: {
+            Authorization: token
+          }
+        });
+
+        if (response.data) {
+          this.user = { ...response.data };
           // 转换isActive为布尔值
           this.user.isActive = this.user.isActive === 1;
-        } else {
-          // 使用实际API
-          const token = localStorage.getItem('jwtToken');
-          if (!token) {
-            this.$router.push('/login');
-            return;
-          }
-
-          const response = await axios.get('/city/admin/info', {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          if (response.data) {
-            this.user = { ...response.data };
-            // 转换isActive为布尔值
-            this.user.isActive = this.user.isActive === 1;
-          }
         }
       } catch (error) {
         console.error('获取用户信息失败:', error);
@@ -346,7 +338,7 @@ export default {
       }
     },
 
-    // 更新用户设置
+// 更新用户设置
     async updateUserSettings() {
       this.loading = true;
       try {
@@ -354,27 +346,21 @@ export default {
         const userData = { ...this.user };
         userData.isActive = userData.isActive ? 1 : 0;
 
-        if (isDevelopment) {
-          // 使用模拟API
-          await mockApi.updateAdminInfo(userData);
+        // 使用实际API
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+          this.$router.push('/login');
+          return;
+        }
+
+        const response = await axios.put('/city/admin/update', userData, {
+          headers: {
+            Authorization: token
+          }
+        });
+
+        if (response.status === 200) {
           this.showMessage('设置已成功更新', 'success');
-        } else {
-          // 使用实际API
-          const token = localStorage.getItem('jwtToken');
-          if (!token) {
-            this.$router.push('/login');
-            return;
-          }
-
-          const response = await axios.put('/city/admin/update', userData, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          if (response.status === 200) {
-            this.showMessage('设置已成功更新', 'success');
-          }
         }
       } catch (error) {
         console.error('更新设置失败:', error);
@@ -384,7 +370,7 @@ export default {
       }
     },
 
-    // 修改密码
+// 修改密码
     async changePassword() {
       // 验证密码
       if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
@@ -399,45 +385,52 @@ export default {
 
       this.passwordLoading = true;
       try {
-        if (isDevelopment) {
-          // 使用模拟API
-          await mockApi.changePassword(
-            this.passwordForm.currentPassword, 
-            this.passwordForm.newPassword
-          );
+        // 使用实际API
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+          this.$router.push('/login');
+          return;
+        }
+
+        const response = await axios.post('/city/admin/changePassword', {
+          currentPassword: this.passwordForm.currentPassword,
+          newPassword: this.passwordForm.newPassword
+        }, {
+          headers: {
+            Authorization: token
+          }
+        });
+
+        if (response.status === 200) {
           this.showMessage('密码修改成功', 'success');
           this.passwordForm.currentPassword = '';
           this.passwordForm.newPassword = '';
           this.passwordForm.confirmPassword = '';
-        } else {
-          // 使用实际API
-          const token = localStorage.getItem('jwtToken');
-          if (!token) {
-            this.$router.push('/login');
-            return;
-          }
-
-          const response = await axios.post('/city/admin/changePassword', {
-            currentPassword: this.passwordForm.currentPassword,
-            newPassword: this.passwordForm.newPassword
-          }, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          if (response.status === 200) {
-            this.showMessage('密码修改成功', 'success');
-            this.passwordForm.currentPassword = '';
-            this.passwordForm.newPassword = '';
-            this.passwordForm.confirmPassword = '';
-          }
         }
       } catch (error) {
         console.error('修改密码失败:', error);
         this.showMessage('修改密码失败，请确认当前密码是否正确', 'danger');
       } finally {
         this.passwordLoading = false;
+      }
+    },
+
+// 获取登录历史
+    async fetchLoginHistory() {
+      try {
+        // 使用实际API
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
+
+        const response = await axios.get('/city/admin/loginHistory', {
+          headers: {
+            Authorization: token
+          }
+        });
+
+        this.loginHistory = response.data || [];
+      } catch (error) {
+        console.error('获取登录历史失败:', error);
       }
     },
 
@@ -595,29 +588,7 @@ export default {
         });
     },
 
-    // 获取登录历史
-    async fetchLoginHistory() {
-      try {
-        if (isDevelopment) {
-          // 使用模拟API
-          this.loginHistory = await mockApi.getLoginHistory();
-        } else {
-          // 使用实际API
-          const token = localStorage.getItem('jwtToken');
-          if (!token) return;
 
-          const response = await axios.get('/city/admin/loginHistory', {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          this.loginHistory = response.data || [];
-        }
-      } catch (error) {
-        console.error('获取登录历史失败:', error);
-      }
-    },
 
     // 显示消息
     showMessage(msg, type = 'info') {

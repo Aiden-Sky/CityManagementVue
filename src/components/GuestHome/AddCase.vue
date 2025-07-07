@@ -72,6 +72,7 @@ export default {
     return {
       newReport: {
         caseID: '',
+        reporterID:'',
         photoUrl: '',
         caseType: '',
         description: '',

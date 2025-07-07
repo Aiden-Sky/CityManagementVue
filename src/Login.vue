@@ -70,34 +70,37 @@ export default {
     },
     async handleSubmit() {
       try {
-        // const isCaptchaValid = await this.verifyCaptcha();
-        // if (!isCaptchaValid) {
-        //   this.errorMessage = '验证码错误';
-        //   return;
-        // }
-
-        const url = `city/admin/login?account=${encodeURIComponent(this.account)}&password=${encodeURIComponent(this.password)}`;
-        const response = await axios.post(url);
-        // 处理响应
-        console.log(response.data);
+        const response = await axios.post('/city/admin/login', null, {
+          params: {
+            account: this.account,
+            password: this.password
+          }
+        });
         const token = response.data;
         localStorage.setItem('jwtToken', token);
-
-        this.$router.push('/home'); // 跳转到/home页面
+        this.$router.push('/home');
 
       } catch (error) {
         console.error(error);
+
         if (error.response) {
-          // 从响应中提取错误信息
+          // 处理后端返回的错误信息
           const errorMessage = error.response.data;
           console.error('Login failed:', errorMessage);
-          this.errorMessage = '账户或密码错误';
+
+          // 显示适当的错误消息
+          if (errorMessage.includes("管理员账号")) {
+            this.errorMessage = "该账号不是管理员账号";
+          } else if (errorMessage.includes("账号或密码不正确")) {
+            this.errorMessage = "账号或密码不正确";
+          } else {
+            this.errorMessage = errorMessage || '登录失败';
+          }
         } else {
-          console.error('Error occurred:', error.message);
-          this.errorMessage = '发生错误，请稍后再试'; // 提示用户发生其他错误
+          this.errorMessage = '发生错误，请稍后再试';
         }
 
-        // 设置定时器，3秒后隐藏错误消息
+        // 3秒后清除错误消息
         setTimeout(() => {
           this.errorMessage = '';
         }, 3000);

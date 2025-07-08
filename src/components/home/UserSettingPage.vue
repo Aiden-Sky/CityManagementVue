@@ -225,10 +225,7 @@
 
 <script>
 import axios from 'axios';
-import mockApi from '../../utils/mock-api';
-
-// 判断是否使用模拟API
-const isDevelopment = process.env.NODE_ENV === 'development';
+import QRCode from 'qrcode';
 
 export default {
   name: 'UserSetting',
@@ -437,23 +434,16 @@ export default {
     // 获取MFA状态
     async fetchMFAStatus() {
       try {
-        if (isDevelopment) {
-          // 使用模拟API
-          const response = await mockApi.getMfaStatus();
-          this.mfaEnabled = response.enabled;
-        } else {
-          // 使用实际API
-          const token = localStorage.getItem('jwtToken');
-          if (!token) return;
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
 
-          const response = await axios.get('/city/admin/mfa/status', {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
+        const response = await axios.get('/city/admin/mfa/status', {
+          headers: {
+            Authorization: token
+          }
+        });
 
-          this.mfaEnabled = response.data.enabled;
-        }
+        this.mfaEnabled = response.data.enabled;
       } catch (error) {
         console.error('获取MFA状态失败:', error);
       }
@@ -463,26 +453,26 @@ export default {
     async setupMFA() {
       this.mfaLoading = true;
       try {
-        if (isDevelopment) {
-          // 使用模拟API
-          const response = await mockApi.setupMfa();
-          this.qrCodeUrl = response.qrCodeUrl;
-          this.secretKey = response.secretKey;
-          this.showMFASetup = true;
-        } else {
-          // 使用实际API
-          const token = localStorage.getItem('jwtToken');
-          if (!token) return;
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
 
-          const response = await axios.post('/city/admin/mfa/setup', {}, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
+        const response = await axios.post('/city/admin/mfa/setup', {}, {
+          headers: {
+            Authorization: token
+          }
+        });
 
-          this.qrCodeUrl = response.data.qrCodeUrl;
-          this.secretKey = response.data.secretKey;
+        // 获取TOTP URL并转换为二维码图片
+        const totpUrl = response.data.qrCodeUrl;
+        this.secretKey = response.data.secretKey;
+        
+        // 生成二维码图片
+        try {
+          this.qrCodeUrl = await QRCode.toDataURL(totpUrl);
           this.showMFASetup = true;
+        } catch (qrError) {
+          console.error('生成二维码失败:', qrError);
+          this.showMessage('生成二维码失败，请重试', 'danger');
         }
       } catch (error) {
         console.error('设置MFA失败:', error);
@@ -501,32 +491,22 @@ export default {
 
       this.verifyingCode = true;
       try {
-        if (isDevelopment) {
-          // 使用模拟API
-          await mockApi.verifyMfaCode('admin', this.verificationCode);
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
+
+        const response = await axios.post('/city/admin/mfa/verify', {
+          code: this.verificationCode
+        }, {
+          headers: {
+            Authorization: token
+          }
+        });
+
+        if (response.status === 200) {
           this.mfaEnabled = true;
           this.showMFASetup = false;
           this.showMessage('双因素认证已成功启用', 'success');
           this.verificationCode = '';
-        } else {
-          // 使用实际API
-          const token = localStorage.getItem('jwtToken');
-          if (!token) return;
-
-          const response = await axios.post('/city/admin/mfa/verify', {
-            code: this.verificationCode
-          }, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          if (response.status === 200) {
-            this.mfaEnabled = true;
-            this.showMFASetup = false;
-            this.showMessage('双因素认证已成功启用', 'success');
-            this.verificationCode = '';
-          }
         }
       } catch (error) {
         console.error('验证失败:', error);
@@ -548,26 +528,18 @@ export default {
     async disableMFA() {
       this.mfaLoading = true;
       try {
-        if (isDevelopment) {
-          // 使用模拟API
-          await mockApi.disableMfa();
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
+
+        const response = await axios.post('/city/admin/mfa/disable', {}, {
+          headers: {
+            Authorization: token
+          }
+        });
+
+        if (response.status === 200) {
           this.mfaEnabled = false;
           this.showMessage('双因素认证已禁用', 'success');
-        } else {
-          // 使用实际API
-          const token = localStorage.getItem('jwtToken');
-          if (!token) return;
-
-          const response = await axios.post('/city/admin/mfa/disable', {}, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          if (response.status === 200) {
-            this.mfaEnabled = false;
-            this.showMessage('双因素认证已禁用', 'success');
-          }
         }
       } catch (error) {
         console.error('禁用MFA失败:', error);

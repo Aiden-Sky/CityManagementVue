@@ -9,6 +9,9 @@ import TraceCase from "@/components/GuestHome/TraceCase.vue";
 import ManageHome from "@/ManageHome.vue";
 import ResidentInfom from "@/components/GuestHome/ResidentInfom.vue";
 
+// MFA验证状态标记
+const MFA_VERIFIED_KEY = 'mfaVerified';
+
 const routes = [
   {
     path: '/test',
@@ -81,47 +84,71 @@ router.beforeEach(async (to, from, next) => {
   const requiresManagement = to.meta.requiresManagement;
 
   const token = localStorage.getItem('jwtToken');
+  const mfaVerified = sessionStorage.getItem(MFA_VERIFIED_KEY) === 'true';
 
   if (requiresAdmin || requiresResident || requiresManagement) {
     // 如果token不存在，重定向到登录页面
     if (!token) {
-      next(from);
-    } else {
-      try {
-        // 验证token是否有效
-        let response = null;
-        if (requiresAdmin) {
-          response = await axiosInstance.post('/city/verifyToken', {
-            token: token,
-            type: "SysAdmin"
-          });
-        } else if (requiresManagement) {
-          response = await axiosInstance.post('/city/verifyToken', {
-            token: token,
-            type: "Manager"
-          });
-        } else {
-          response = await axiosInstance.post('/city/verifyToken', {
-            token: token,
-            type: "Resident"
-          });
+      next('/');
+      return;
+    }
+    
+    try {
+      // 验证token是否有效
+      let response = null;
+      if (requiresAdmin) {
+        // 系统管理员还需要检查MFA验证状态
+        response = await axiosInstance.post('/city/verifyToken', {
+          token: token,
+          type: "SysAdmin"
+        });
+        
+        // 如果是SysAdmin且未通过MFA验证，则检查是否需要MFA验证
+        if (response.status === 200 && !mfaVerified) {
+          try {
+            // 检查该账号是否需要MFA验证
+            const mfaResponse = await axiosInstance.get('/city/admin/mfa/status', {
+              headers: {
+                Authorization: token
+              }
+            });
+            
+            if (mfaResponse.data && mfaResponse.data.enabled) {
+              // 如果需要MFA验证但未验证，重定向到登录页面
+              localStorage.removeItem('jwtToken'); // 清除token
+              next('/login');
+              return;
+            }
+          } catch (mfaError) {
+            console.error('MFA状态检查失败:', mfaError);
+            // 发生错误时，为安全起见，假设需要MFA验证
+            next('/login');
+            return;
+          }
         }
-
-        console.log(response.data);
-        if (response.status === 200) {
-          next();
-        } else {
-          next(from); // 重定向到登录页面
-          localStorage.removeItem('jwtToken'); // 清除失效的token
-        }
-
-        // 继续导航到目标路由
-      } catch (error) {
-        console.error('Token verification failed:', error.message);
-        // 处理token验证失败，例如token过期等情况
-        localStorage.removeItem('jwtToken'); // 清除失效的token
-        next(from); // 重定向到登录页面
+      } else if (requiresManagement) {
+        response = await axiosInstance.post('/city/verifyToken', {
+          token: token,
+          type: "Management"
+        });
+      } else {
+        response = await axiosInstance.post('/city/verifyToken', {
+          token: token,
+          type: "Resident"
+        });
       }
+
+      if (response.status === 200) {
+        next();
+      } else {
+        next('/login'); // 重定向到登录页面
+        localStorage.removeItem('jwtToken'); // 清除失效的token
+      }
+    } catch (error) {
+      console.error('Token verification failed:', error.message);
+      // 处理token验证失败，例如token过期等情况
+      localStorage.removeItem('jwtToken'); // 清除失效的token
+      next('/login'); // 重定向到登录页面
     }
   } else {
     next(); // 如果不需要登录验证，直接继续导航

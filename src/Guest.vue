@@ -119,14 +119,14 @@ export default {
 
         const payload = jwtDecode(token);
 
-        if (payload.userType === "SysAdmin") {
+        if (payload.userType === "Resident") {
           // 用户是管理员
 
-          this.$router.push('/manageHome');
+          this.$router.push('/guestHome');
         } else {
           // 用户不是管理员
 
-          this.$router.push('/guestHome');
+          this.$router.push('/manageHome');
         }
 
         // 将 token 存储在 localStorage 中

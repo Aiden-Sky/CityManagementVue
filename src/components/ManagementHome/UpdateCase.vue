@@ -144,6 +144,11 @@
         案件状态已成功更新！
         <button type="button" class="btn-close" @click="showSuccessAlert = false" aria-label="Close"></button>
       </div>
+      <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage }}
+        <button type="button" class="btn-close" @click="errorMessage = ''" aria-label="Close"></button>
+      </div>
     </div>
     <div v-else class="no-case-selected">
       <div class="text-center py-5">
@@ -157,6 +162,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'UpdateCase',
   props: {
@@ -173,7 +180,8 @@ export default {
       resolutionMethod: '',
       notifyReporter: true,
       isSubmitting: false,
-      showSuccessAlert: false
+      showSuccessAlert: false,
+      errorMessage: ''
     };
   },
   computed: {
@@ -187,32 +195,75 @@ export default {
   mounted() {
     // 初始化状态为当前案件状态
     this.updatedStatus = this.caseItem.status;
+    this.handlerName = this.caseItem.handlerName || '';
+    this.updateNote = this.caseItem.updateNote || '';
   },
   methods: {
-    updateCase() {
+    async updateCase() {
       this.isSubmitting = true;
+      this.errorMessage = '';
       
-      // 模拟API调用
-      setTimeout(() => {
-        // 在实际应用中，这里应发送请求到服务器更新案件状态
-        console.log('更新案件状态:', {
-          caseID: this.caseItem.caseID,
+      try {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+          this.$router.push('/login');
+          return;
+        }
+        
+        // 构建请求数据
+        const caseData = {
+          id: this.caseItem.caseID,
           status: this.updatedStatus,
-          handler: this.handlerName,
-          note: this.updateNote,
-          resolutionMethod: this.resolutionMethod,
-          notifyReporter: this.notifyReporter
+          handlerName: this.handlerName,
+          updateNote: this.updateNote
+        };
+        
+        // 如果是已解决状态，添加解决方法
+        if (this.updatedStatus === '已解决' && this.resolutionMethod) {
+          caseData.resolutionMethod = this.resolutionMethod;
+          caseData.resolveTime = new Date().toISOString(); // 使用当前时间作为解决时间
+        }
+        
+        // 如果是处理中状态，添加处理时间
+        if (this.updatedStatus === '处理中' && !this.caseItem.processTime) {
+          caseData.processTime = new Date().toISOString(); // 使用当前时间作为处理时间
+        }
+        
+        const response = await axios.post('/city/caseInfom/SetInfom', caseData, {
+          headers: {
+            Authorization: token,
+            'Content-Type': 'application/json'
+          }
         });
         
-        // 更新成功后显示成功提示
-        this.showSuccessAlert = true;
+        if (response.status === 200) {
+          this.showSuccessAlert = true;
+          
+          // 如果需要通知举报人，调用通知API（如果有的话）
+          if (this.notifyReporter) {
+            try {
+              // 这里可以添加通知举报人的API调用
+              // 但当前后端暂未提供此API，因此暂不实现
+            } catch (notifyError) {
+              console.error('通知举报人失败:', notifyError);
+            }
+          }
+          
+          // 5秒后自动关闭提示
+          setTimeout(() => {
+            this.showSuccessAlert = false;
+            // 更新完成后可以返回列表页面
+            this.$emit('go-back', true); // 传递true表示已更新
+          }, 3000);
+        } else {
+          this.errorMessage = '更新失败，请重试';
+        }
+      } catch (error) {
+        console.error('更新案件失败:', error);
+        this.errorMessage = error.response?.data || '更新案件失败，请重试';
+      } finally {
         this.isSubmitting = false;
-        
-        // 5秒后自动关闭提示
-        setTimeout(() => {
-          this.showSuccessAlert = false;
-        }, 5000);
-      }, 1000);
+      }
     },
     goBack() {
       this.$emit('go-back');

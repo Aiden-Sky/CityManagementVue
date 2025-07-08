@@ -6,27 +6,14 @@
         <h1 class="mb-0 ml-3" style="padding-left: 10px">城市管理系统</h1>
       </div>
       <div class="d-flex align-items-center">
-        <div class="dropdown me-3">
-          <button class="btn theme-btn-outline dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-palette me-1"></i>主题
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="themeDropdown">
-            <li v-for="(color, name) in themeColors" :key="name">
-              <button class="dropdown-item d-flex align-items-center" @click="changeTheme(name)">
-                <span class="color-swatch me-2" :style="{backgroundColor: color.main}"></span>
-                <span>{{ getThemeName(name) }}</span>
-                <i v-if="currentTheme === name" class="bi bi-check-lg ms-auto"></i>
-              </button>
-            </li>
-          </ul>
-        </div>
+
         <div class="dropdown">
           <button class="btn theme-btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle me-1"></i>管理员
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>设置</a></li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
+            <li><a class="dropdown-item" href="#" @click.prevent="currentModule = 'settings'"><i class="bi bi-gear me-2"></i>设置</a></li>
+            <li><a class="dropdown-item" href="#" @click.prevent="logout"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
           </ul>
         </div>
       </div>
@@ -34,8 +21,16 @@
     
     <div class="background">
       <div class="container my-4 flex-grow-1">
+        <!-- 加载状态 -->
+        <div v-if="loading" class="text-center my-5">
+          <div class="spinner-border theme-spinner" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">加载中...</span>
+          </div>
+          <p class="mt-3">正在加载案件数据...</p>
+        </div>
+    
         <!-- 统计卡片 -->
-        <div class="row mb-4">
+        <div class="row mb-4" v-if="!loading">
           <div class="col-md-3">
             <div class="stat-card">
               <div class="stat-icon">
@@ -106,17 +101,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6 col-lg-4 mb-3">
-            <div class="feature-card">
-              <div class="feature-icon">
-                <i class="bi bi-graph-up"></i>
-              </div>
-              <div class="feature-content">
-                <h5 class="feature-title">数据分析</h5>
-                <p class="feature-text">查看案件统计和趋势</p>
-              </div>
-            </div>
-          </div>
+
           <div class="col-md-6 col-lg-4 mb-3">
             <div class="feature-card">
               <div class="feature-icon">
@@ -128,28 +113,28 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6 col-lg-4 mb-3">
-            <div class="feature-card">
-              <div class="feature-icon">
-                <i class="bi bi-person-badge"></i>
-              </div>
-              <div class="feature-content">
-                <h5 class="feature-title">人员管理</h5>
-                <p class="feature-text">管理系统用户和权限</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-4 mb-3">
-            <div class="feature-card">
-              <div class="feature-icon">
-                <i class="bi bi-gear-wide-connected"></i>
-              </div>
-              <div class="feature-content">
-                <h5 class="feature-title">系统设置</h5>
-                <p class="feature-text">配置系统参数和选项</p>
-              </div>
-            </div>
-          </div>
+<!--          <div class="col-md-6 col-lg-4 mb-3">-->
+<!--            <div class="feature-card">-->
+<!--              <div class="feature-icon">-->
+<!--                <i class="bi bi-person-badge"></i>-->
+<!--              </div>-->
+<!--              <div class="feature-content">-->
+<!--                <h5 class="feature-title">人员管理</h5>-->
+<!--                <p class="feature-text">管理系统用户和权限</p>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-md-6 col-lg-4 mb-3">-->
+<!--            <div class="feature-card">-->
+<!--              <div class="feature-icon">-->
+<!--                <i class="bi bi-gear-wide-connected"></i>-->
+<!--              </div>-->
+<!--              <div class="feature-content">-->
+<!--                <h5 class="feature-title">系统设置</h5>-->
+<!--                <p class="feature-text">配置系统参数和选项</p>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
         </div>
         
         <!-- 模块内容 -->
@@ -179,10 +164,9 @@
           <div class="col-md-4">
             <h6 class="mb-2">关注我们</h6>
             <div class="social-icons">
-              <a href="#" class="me-2"><i class="bi bi-facebook"></i></a>
-              <a href="#" class="me-2"><i class="bi bi-twitter"></i></a>
-              <a href="#" class="me-2"><i class="bi bi-instagram"></i></a>
-              <a href="#"><i class="bi bi-linkedin"></i></a>
+              <a href="#" class="me-2"><i class="bi bi-sina-weibo"></i></a>
+              <a href="#" class="me-2"><i class="bi bi-wechat"></i></a>
+              <a href="#" class="me-2"><i class="bi bi-tencent-qq"></i></a>
             </div>
           </div>
         </div>
@@ -194,6 +178,7 @@
 <script>
 import ViewCases from './components/ManagementHome/viewCases.vue';
 import UpdateCase from './components/ManagementHome/UpdateCase.vue';
+import axios from 'axios';
 
 export default {
   name: 'ManageHome',
@@ -205,6 +190,13 @@ export default {
     return {
       currentModule: 'viewCases', // 初始模块为查看案件
       selectedCase: null, // 当前选择的案件
+      loading: false,
+      caseStats: {
+        pending: 0,
+        processing: 0,
+        resolved: 0,
+        totalReporters: 0
+      },
       currentTheme: 'red', // 默认主题
       themeColors: {
         blue: {
@@ -243,13 +235,7 @@ export default {
           dark: '#495057'
         }
       },
-      // 模拟案件数据统计
-      caseStats: {
-        pending: 5,
-        processing: 3,
-        resolved: 4,
-        totalReporters: 8
-      }
+
     };
   },
   mounted() {
@@ -260,6 +246,12 @@ export default {
     } else {
       this.changeTheme(this.currentTheme);
     }
+    
+    // 获取案件统计信息
+    this.fetchCaseStats();
+    
+    // 验证登录状态
+    this.checkLoginStatus();
   },
   methods: {
     // 更改主题
@@ -292,6 +284,62 @@ export default {
       return themeNames[name] || name;
     },
     
+    // 验证登录状态
+    checkLoginStatus() {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        this.$router.push('/login');
+        return;
+      }
+      
+      // 验证token是否有效，且具有管理权限
+      axios.post('/city/verifyToken', {
+        token: token,
+        type: "Management"
+      })
+      .catch(error => {
+        console.error('验证失败:', error);
+        localStorage.removeItem('jwtToken');
+        this.$router.push('/login');
+      });
+    },
+    
+    // 获取案件统计信息
+    async fetchCaseStats() {
+      this.loading = true;
+      try {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) return;
+        
+        // 获取案件统计数据
+        // 由于后端可能没有直接提供统计API，我们获取所有案件后在前端计算
+        const response = await axios.get('/city/caseInfom/getInfoms', {
+          params: { page: 1, pageSize: 100 }, // 获取足够多的案件来进行统计
+          headers: { Authorization: token }
+        });
+        
+        if (response.data && response.data.reports) {
+          const cases = response.data.reports;
+          
+          // 统计不同状态的案件数量
+          this.caseStats.pending = cases.filter(c => c.status === '未处理').length;
+          this.caseStats.processing = cases.filter(c => c.status === '处理中').length;
+          this.caseStats.resolved = cases.filter(c => c.status === '已解决').length;
+          
+          // 计算总的举报人数（去重）
+          const reporters = new Set();
+          cases.forEach(c => {
+            if (c.reporter) reporters.add(c.reporter);
+          });
+          this.caseStats.totalReporters = reporters.size;
+        }
+      } catch (error) {
+        console.error('获取案件统计失败:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    
     // 选择案件
     selectCase(caseItem) {
       this.selectedCase = caseItem;
@@ -299,8 +347,13 @@ export default {
     },
     
     // 返回案件列表
-    goBackToList() {
+    goBackToList(updated = false) {
       this.currentModule = 'viewCases';
+      
+      // 如果案件已更新，刷新案件统计
+      if (updated) {
+        this.fetchCaseStats();
+      }
     },
     
     // 获取待处理案件数量
@@ -321,6 +374,13 @@ export default {
     // 获取举报人总数
     getTotalReporters() {
       return this.caseStats.totalReporters;
+    },
+    
+    // 退出登录
+    logout() {
+      localStorage.removeItem('jwtToken');
+      sessionStorage.removeItem('mfaVerified');
+      this.$router.push('/login');
     }
   },
 };
@@ -489,6 +549,14 @@ footer {
 
 .social-icons a:hover {
   color: var(--theme-color, #c3161c);
+}
+
+.theme-spinner {
+  color: var(--theme-color, #c3161c);
+}
+
+.spinner-border.theme-spinner {
+  border-right-color: transparent;
 }
 
 @media (max-width: 768px) {

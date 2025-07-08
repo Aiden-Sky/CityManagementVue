@@ -67,8 +67,21 @@
       </div>
     </div>
 
+    <!-- 加载状态和错误提示 -->
+    <div v-if="loading" class="text-center my-4">
+      <div class="spinner-border theme-spinner" role="status">
+        <span class="visually-hidden">加载中...</span>
+      </div>
+      <p class="mt-2">正在加载案件数据...</p>
+    </div>
+    
+    <div v-if="error" class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ error }}
+    </div>
+    
     <!-- 案件表格 -->
-    <div class="table-responsive">
+    <div class="table-responsive" v-if="!loading">
       <table class="table table-hover case-table">
         <thead class="table-header">
           <tr>
@@ -266,115 +279,14 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'ViewCases',
   data() {
     return {
-      cases: [
-        {
-          caseID: '1',
-          reporter: '张三',
-          reporterPhone: '1234567890',
-          caseType: '道路维修',
-          infoCategory: '基础设施',
-          description: '道路破损严重，需要维修。',
-          location: '北京市海淀区',
-          locationDescribe: '中关村大街与海淀南路交叉口',
-          status: '处理中',
-          reportTime: '2023-05-15 09:30',
-          processTime: '2023-05-16 14:20'
-        },
-        {
-          caseID: '2',
-          reporter: '李四',
-          reporterPhone: '0987654321',
-          caseType: '垃圾清理',
-          infoCategory: '环境卫生',
-          description: '小区内垃圾堆积，需要清理。',
-          location: '北京市朝阳区',
-          locationDescribe: '三里屯街道',
-          status: '未处理',
-          reportTime: '2023-05-18 16:45'
-        },
-        {
-          caseID: '5',
-          reporter: '陈七',
-          reporterPhone: '1122334455',
-          caseType: '公共厕所损坏',
-          infoCategory: '基础设施',
-          description: '公共厕所内设施损坏，需要修理。',
-          location: '重庆市渝中区',
-          locationDescribe: '解放碑步行街旁',
-          status: '处理中',
-          reportTime: '2023-05-10 11:20',
-          processTime: '2023-05-11 09:15'
-        },
-        {
-          caseID: '6',
-          reporter: '刘八',
-          reporterPhone: '6677889900',
-          caseType: '交通标志丢失',
-          infoCategory: '基础设施',
-          description: '交通标志牌丢失，导致车辆通行不便。',
-          location: '南京市建邺区',
-          locationDescribe: '河西大街与万达路交叉口',
-          status: '已解决',
-          reportTime: '2023-05-05 08:30',
-          processTime: '2023-05-05 13:45',
-          resolveTime: '2023-05-08 17:20'
-        },
-        {
-          caseID: '4',
-          reporter: '赵六',
-          reporterPhone: '2468135790',
-          caseType: '桥梁裂缝',
-          infoCategory: '基础设施',
-          description: '桥梁出现明显裂缝，需要检查修复。',
-          location: '深圳市福田区',
-          locationDescribe: '深南大道与福田路交叉口',
-          status: '待处理',
-          reportTime: '2023-05-12 14:25'
-        }, 
-        {
-          caseID: '3',
-          reporter: '王五',
-          reporterPhone: '1357924680',
-          caseType: '排水系统问题',
-          infoCategory: '基础设施',
-          description: '排水管道堵塞，导致积水严重。',
-          location: '广州市天河区',
-          locationDescribe: '天汇大街与珠江新城交叉口',
-          status: '已解决',
-          reportTime: '2023-05-14 10:15',
-          processTime: '2023-05-14 15:30',
-          resolveTime: '2023-05-17 09:45'
-        },
-        {
-          caseID: '7',
-          reporter: '钱九',
-          reporterPhone: '3344556677',
-          caseType: '路灯故障',
-          infoCategory: '基础设施',
-          description: '街道路灯不亮，影响夜间出行安全。',
-          location: '武汉市武昌区',
-          locationDescribe: '洪山广场附近',
-          status: '未处理',
-          reportTime: '2023-05-19 18:50'
-        },
-        {
-          caseID: '8',
-          reporter: '孙十',
-          reporterPhone: '8899001122',
-          caseType: '噪音扰民',
-          infoCategory: '公共安全',
-          description: '附近工地夜间施工，噪音严重影响居民休息。',
-          location: '杭州市西湖区',
-          locationDescribe: '西湖文化广场附近',
-          status: '处理中',
-          reportTime: '2023-05-17 22:10',
-          processTime: '2023-05-18 09:30'
-        }
-      ],
+      cases: [],
+      loading: false,
       searchQuery: '',
       statusFilter: '',
       categoryFilter: '',
@@ -382,7 +294,9 @@ export default {
       pageSize: 5,
       sortKey: '',
       sortOrder: 'asc',
-      selectedCaseDetail: null
+      selectedCaseDetail: null,
+      totalCount: 0,
+      error: ''
     };
   },
   computed: {
@@ -393,11 +307,11 @@ export default {
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase();
         result = result.filter(item => 
-          item.caseID.toLowerCase().includes(query) ||
-          item.reporter.toLowerCase().includes(query) ||
-          item.description.toLowerCase().includes(query) ||
-          item.location.toLowerCase().includes(query) ||
-          item.caseType.toLowerCase().includes(query)
+          (item.id && item.id.toString().includes(query)) ||
+          (item.reporter && item.reporter.toLowerCase().includes(query)) ||
+          (item.description && item.description.toLowerCase().includes(query)) ||
+          (item.location && item.location.toLowerCase().includes(query)) ||
+          (item.caseType && item.caseType.toLowerCase().includes(query))
         );
       }
       
@@ -439,9 +353,90 @@ export default {
       return Math.ceil(this.filteredCases.length / this.pageSize);
     }
   },
+  mounted() {
+    this.fetchCases();
+  },
   methods: {
+    async fetchCases() {
+      this.loading = true;
+      this.error = '';
+      
+      try {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+          this.$router.push('/login');
+          return;
+        }
+        
+        const response = await axios.get('/city/caseInfom/getInfoms', {
+          params: {
+            page: this.currentPage,
+            pageSize: this.pageSize
+          },
+          headers: {
+            Authorization: token
+          }
+        });
+        
+        if (response.data && response.data.reports) {
+          // 处理返回的案例数据，确保数据格式一致
+          this.cases = response.data.reports.map(item => {
+            return {
+              caseID: item.id,
+              reporter: item.reporter || '未知',
+              reporterPhone: item.reporterPhone || '无电话',
+              caseType: item.caseType || '未分类',
+              infoCategory: item.infoCategory || '其他',
+              description: item.description || '无描述',
+              location: item.location || '未知',
+              locationDescribe: item.locationDescribe || '无详细位置',
+              status: item.status || '未处理',
+              reportTime: this.formatDateTime(item.createdDate),
+              processTime: this.formatDateTime(item.processTime),
+              resolveTime: this.formatDateTime(item.resolveTime),
+              handlerName: item.handlerName || '',
+              updateNote: item.updateNote || ''
+            };
+          });
+          
+          if (response.data.totalPages) {
+            this.totalCount = response.data.totalPages * this.pageSize;
+          }
+        } else {
+          this.cases = [];
+          this.totalCount = 0;
+        }
+      } catch (error) {
+        console.error('获取案件列表失败:', error);
+        this.error = '获取案件列表失败，请重试';
+        this.cases = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+    formatDateTime(dateTimeStr) {
+      if (!dateTimeStr) return '';
+      
+      // 处理多种可能的日期时间格式
+      try {
+        const date = new Date(dateTimeStr);
+        if (isNaN(date.getTime())) return dateTimeStr; // 如果无法解析则返回原始字符串
+        
+        return date.toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return dateTimeStr;
+      }
+    },
     applyFilters() {
       this.currentPage = 1; // 重置为第一页
+      // 如果使用服务器端筛选，可能需要重新获取数据
+      // this.fetchCases();
     },
     resetFilters() {
       this.searchQuery = '';
@@ -454,6 +449,8 @@ export default {
     changePage(page) {
       if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page;
+        // 如果使用服务器端分页，需要重新获取数据
+        // this.fetchCases();
       }
     },
     sortBy(key) {

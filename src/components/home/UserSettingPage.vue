@@ -434,16 +434,16 @@ export default {
     // 获取MFA状态
     async fetchMFAStatus() {
       try {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) return;
+          const token = localStorage.getItem('jwtToken');
+          if (!token) return;
 
-        const response = await axios.get('/city/admin/mfa/status', {
-          headers: {
+          const response = await axios.get('/city/admin/mfa/status', {
+            headers: {
             Authorization: token
-          }
-        });
+            }
+          });
 
-        this.mfaEnabled = response.data.enabled;
+          this.mfaEnabled = response.data.enabled;
       } catch (error) {
         console.error('获取MFA状态失败:', error);
       }
@@ -453,18 +453,18 @@ export default {
     async setupMFA() {
       this.mfaLoading = true;
       try {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) return;
+          const token = localStorage.getItem('jwtToken');
+          if (!token) return;
 
-        const response = await axios.post('/city/admin/mfa/setup', {}, {
-          headers: {
+          const response = await axios.post('/city/admin/mfa/setup', {}, {
+            headers: {
             Authorization: token
-          }
-        });
+            }
+          });
 
         // 获取TOTP URL并转换为二维码图片
         const totpUrl = response.data.qrCodeUrl;
-        this.secretKey = response.data.secretKey;
+          this.secretKey = response.data.secretKey;
         
         // 生成二维码图片
         try {
@@ -491,22 +491,22 @@ export default {
 
       this.verifyingCode = true;
       try {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) return;
+          const token = localStorage.getItem('jwtToken');
+          if (!token) return;
 
-        const response = await axios.post('/city/admin/mfa/verify', {
-          code: this.verificationCode
-        }, {
-          headers: {
+          const response = await axios.post('/city/admin/mfa/verify', {
+            code: this.verificationCode
+          }, {
+            headers: {
             Authorization: token
-          }
-        });
+            }
+          });
 
-        if (response.status === 200) {
-          this.mfaEnabled = true;
-          this.showMFASetup = false;
-          this.showMessage('双因素认证已成功启用', 'success');
-          this.verificationCode = '';
+          if (response.status === 200) {
+            this.mfaEnabled = true;
+            this.showMFASetup = false;
+            this.showMessage('双因素认证已成功启用', 'success');
+            this.verificationCode = '';
         }
       } catch (error) {
         console.error('验证失败:', error);
@@ -528,18 +528,18 @@ export default {
     async disableMFA() {
       this.mfaLoading = true;
       try {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) return;
+          const token = localStorage.getItem('jwtToken');
+          if (!token) return;
 
-        const response = await axios.post('/city/admin/mfa/disable', {}, {
-          headers: {
+          const response = await axios.post('/city/admin/mfa/disable', {}, {
+            headers: {
             Authorization: token
-          }
-        });
+            }
+          });
 
-        if (response.status === 200) {
-          this.mfaEnabled = false;
-          this.showMessage('双因素认证已禁用', 'success');
+          if (response.status === 200) {
+            this.mfaEnabled = false;
+            this.showMessage('双因素认证已禁用', 'success');
         }
       } catch (error) {
         console.error('禁用MFA失败:', error);

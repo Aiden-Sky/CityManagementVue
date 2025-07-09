@@ -31,6 +31,9 @@
             </div>
             <div class="col-md-6">
               <div class="d-flex justify-content-end">
+                <button class="btn btn-outline-danger me-2" @click="showCancelCaseModal" :disabled="!selectedCase || !canCancelCase(selectedCase)">
+                  <i class="bi bi-x-circle me-1"></i>撤销案件
+                </button>
                 <div class="dropdown">
                   <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     状态: {{ activeFilter || '全部' }}
@@ -40,6 +43,9 @@
                     <li><a class="dropdown-item" href="#" @click.prevent="applyFilter('未处理')">未处理</a></li>
                     <li><a class="dropdown-item" href="#" @click.prevent="applyFilter('处理中')">处理中</a></li>
                     <li><a class="dropdown-item" href="#" @click.prevent="applyFilter('已完成')">已完成</a></li>
+                    <li><a class="dropdown-item" href="#" @click.prevent="applyFilter('已解决')">已解决</a></li>
+                    <li><a class="dropdown-item" href="#" @click.prevent="applyFilter('待处理')">待处理</a></li>
+                    <li><a class="dropdown-item" href="#" @click.prevent="applyFilter('已撤销')">已撤销</a></li>
                   </ul>
                 </div>
               </div>
@@ -114,7 +120,7 @@
                       </p>
                       <p><strong>处理时长:</strong> {{ calculateProcessingTime(selectedCase) }}</p>
                       <p><strong>位置:</strong> {{ selectedCase.locationDescribe || '未知' }}</p>
-                      <p><strong>处理方式:</strong> {{ selectedCase.HandlingMethod || '暂无' }}</p>
+                      <p><strong>处理方式:</strong> {{ selectedCase.handlingMethod || '暂无' }}</p>
                     </div>
                   </div>
 
@@ -124,10 +130,10 @@
                   </div>
 
                   <!-- 现场图片 -->
-                  <div v-if="selectedCase.PhotoUrl" class="mb-4">
+                  <div v-if="selectedCase.photo" class="mb-4">
                     <h5>现场图片</h5>
                     <div class="image-container">
-                      <img :src="selectedCase.PhotoUrl" alt="现场图片" class="case-image img-fluid">
+                      <img :src="getPhotoUrl(selectedCase.photo)" alt="现场图片" class="case-image img-fluid">
                     </div>
                   </div>
 
@@ -140,7 +146,7 @@
                       </div>
                       <div class="timeline-content">
                         <h6 class="timeline-title">问题提交</h6>
-                        <p class="timeline-date">{{ selectedCase.CreatedDate }}</p>
+                        <p class="timeline-date">{{ selectedCase.createdDate }}</p>
                         <p>您的反馈已成功提交至系统</p>
                       </div>
                     </div>
@@ -151,30 +157,30 @@
                       </div>
                       <div class="timeline-content">
                         <h6 class="timeline-title">问题审核</h6>
-                        <p class="timeline-date">{{ selectedCase.VerifiedDate || '待处理' }}</p>
+                        <p class="timeline-date">{{ selectedCase.verifiedDate || '待处理' }}</p>
                         <p>{{ selectedCase.status !== '未处理' ? '您的反馈已由管理员审核' : '等待管理员审核' }}</p>
                       </div>
                     </div>
 
-                    <div class="timeline-item" :class="{ 'completed': selectedCase.status === '处理中' || selectedCase.status === '已完成' }">
-                      <div class="timeline-badge" :class="selectedCase.status === '处理中' || selectedCase.status === '已完成' ? 'bg-primary' : 'bg-secondary'">
-                        <i class="bi" :class="selectedCase.status === '处理中' || selectedCase.status === '已完成' ? 'bi-check' : 'bi-clock'"></i>
+                    <div class="timeline-item" :class="{ 'completed': selectedCase.status === '处理中' || selectedCase.status === '已解决' || selectedCase.status === '已完成' }">
+                      <div class="timeline-badge" :class="selectedCase.status === '处理中' || selectedCase.status === '已解决' || selectedCase.status === '已完成' ? 'bg-primary' : 'bg-secondary'">
+                        <i class="bi" :class="selectedCase.status === '处理中' || selectedCase.status === '已解决' || selectedCase.status === '已完成' ? 'bi-check' : 'bi-clock'"></i>
                       </div>
                       <div class="timeline-content">
                         <h6 class="timeline-title">问题处理</h6>
-                        <p class="timeline-date">{{ selectedCase.processingCases || '待处理' }}</p>
-                        <p>{{ selectedCase.status === '处理中' || selectedCase.status === '已完成' ? '反馈正在处理中' : '等待处理' }}</p>
+                        <p class="timeline-date">{{ selectedCase.processDate || '待处理' }}</p>
+                        <p>{{ selectedCase.status === '处理中' || selectedCase.status === '已解决' || selectedCase.status === '已完成' ? '反馈正在处理中' : '等待处理' }}</p>
                       </div>
                     </div>
 
-                    <div class="timeline-item" :class="{ 'completed': selectedCase.status === '已完成' }">
-                      <div class="timeline-badge" :class="selectedCase.status === '已完成' ? 'bg-primary' : 'bg-secondary'">
-                        <i class="bi" :class="selectedCase.status === '已完成' ? 'bi-check' : 'bi-clock'"></i>
+                    <div class="timeline-item" :class="{ 'completed': selectedCase.status === '已解决' || selectedCase.status === '已完成' }">
+                      <div class="timeline-badge" :class="selectedCase.status === '已解决' || selectedCase.status === '已完成' ? 'bg-primary' : 'bg-secondary'">
+                        <i class="bi" :class="selectedCase.status === '已解决' || selectedCase.status === '已完成' ? 'bi-check' : 'bi-clock'"></i>
                       </div>
                       <div class="timeline-content">
                         <h6 class="timeline-title">问题解决</h6>
-                        <p class="timeline-date">{{ selectedCase.ClosedDate || '待完成' }}</p>
-                        <p>{{ selectedCase.status === '已完成' ? '问题已解决' : '问题处理中' }}</p>
+                        <p class="timeline-date">{{ selectedCase.closedDate || '待完成' }}</p>
+                        <p>{{ selectedCase.status === '已解决' || selectedCase.status === '已完成' ? '问题已解决' : '问题处理中' }}</p>
                       </div>
                     </div>
                   </div>
@@ -194,6 +200,37 @@
     <footer class="text-center mt-4 colorgold">
       <p>关于我们 | 站点地图 | 建议意见 | 法律声明</p>
     </footer>
+
+    <!-- 撤销案件确认模态框 -->
+    <div class="modal fade" id="cancelCaseModal" tabindex="-1" aria-labelledby="cancelCaseModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="cancelCaseModalLabel">确认撤销案件</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>您确定要撤销此案件吗？撤销后将无法恢复。</p>
+            <div v-if="selectedCase" class="case-summary">
+              <p><strong>案件ID:</strong> {{ selectedCase.caseID }}</p>
+              <p><strong>描述:</strong> {{ selectedCase.description }}</p>
+              <p><strong>提交时间:</strong> {{ selectedCase.createdDate }}</p>
+            </div>
+            <div class="mb-3">
+              <label for="cancelReason" class="form-label">撤销原因 (选填):</label>
+              <textarea id="cancelReason" class="form-control" v-model="cancelReason" rows="3" placeholder="请输入撤销原因..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-danger" @click="cancelCase" :disabled="isCancelling">
+              <span v-if="isCancelling" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              确认撤销
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -209,6 +246,9 @@ export default {
       isLoading: true,
       searchQuery: '',
       activeFilter: '',
+      cancelReason: '', // 撤销原因
+      isCancelling: false, // 是否正在撤销
+      cancelModal: null, // 撤销模态框实例
     };
   },
   computed: {
@@ -280,12 +320,87 @@ export default {
           return 'status-processing';
         case '已完成':
           return 'status-completed';
+        case '已解决':
+          return 'status-completed';
+        case '待处理':
+          return 'status-waiting';
+        case '已撤销':
+          return 'status-cancelled';
         default:
           return 'status-default';
       }
     },
+    
+    // 判断案件是否可以撤销
+    canCancelCase(caseItem) {
+      // 只有未处理或待处理的案件可以撤销
+      return caseItem && (caseItem.status === '未处理' || caseItem.status === '待处理');
+    },
+    
+    // 显示撤销案件确认模态框
+    showCancelCaseModal() {
+      if (!this.selectedCase) return;
+      
+      this.cancelReason = '';
+      this.cancelModal.show();
+    },
+    
+    // 撤销案件
+    async cancelCase() {
+      if (!this.selectedCase) return;
+      
+      this.isCancelling = true;
+      
+      try {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+          this.$router.push('/login');
+          return;
+        }
+        
+        // 构建请求数据
+        const caseData = {
+          caseID: this.selectedCase.caseID,
+          status: '已撤销',
+          manageRemark: `居民自行撤销。${this.cancelReason ? '原因：' + this.cancelReason : ''}`
+        };
+        
+        const response = await axios.post('/city/caseInfom/SetInfom', caseData, {
+          headers: {
+            Authorization: token,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.status === 200) {
+          // 关闭模态框
+          this.cancelModal.hide();
+          
+          // 更新案件状态
+          this.selectedCase.status = '已撤销';
+          this.selectedCase.manageRemark = caseData.manageRemark;
+          
+          // 更新案件列表中的状态
+          const index = this.cases.findIndex(c => c.caseID === this.selectedCase.caseID);
+          if (index !== -1) {
+            this.cases[index].status = '已撤销';
+            this.cases[index].manageRemark = caseData.manageRemark;
+          }
+          
+          // 显示成功提示
+          alert('案件已成功撤销');
+        } else {
+          alert('撤销失败，请重试');
+        }
+      } catch (error) {
+        console.error('撤销案件失败:', error);
+        alert('撤销失败：' + (error.response?.data || '未知错误'));
+      } finally {
+        this.isCancelling = false;
+      }
+    },
     calculateProcessingTime(caseItem) {
-      if (caseItem.status === '未处理') {
+      if (caseItem.status === '未处理' || caseItem.status === '待处理') {
         return '暂未处理';
       }
 
@@ -302,10 +417,36 @@ export default {
         const diffDays = Math.round((today - createdDate) / (1000 * 60 * 60 * 24));
         return `${diffDays}天（进行中）`;
       }
-    }
+    },
+    // 处理照片显示
+    getPhotoUrl(photoData) {
+      if (!photoData) return null;
+      
+      // 如果已经是URL字符串，直接返回
+      if (typeof photoData === 'string' && (photoData.startsWith('http') || photoData.startsWith('data:'))) {
+        return photoData;
+      }
+      
+      // 如果是Base64编码的图片数据
+      try {
+        // 尝试将二进制数据转换为Base64
+        return `data:image/jpeg;base64,${photoData}`;
+      } catch (error) {
+        console.error('处理图片数据失败:', error);
+        return null;
+      }
+    },
   },
   mounted() {
     this.fetchCases(); // 在组件挂载时获取案件列表
+    
+    // 初始化模态框
+    this.$nextTick(() => {
+      const modalElement = document.getElementById('cancelCaseModal');
+      if (modalElement) {
+        this.cancelModal = new bootstrap.Modal(modalElement);
+      }
+    });
   },
 };
 </script>
@@ -425,6 +566,16 @@ header {
 
 .status-completed {
   background-color: #28a745;
+  color: white;
+}
+
+.status-waiting {
+  background-color: #0dcaf0;
+  color: #212529;
+}
+
+.status-cancelled {
+  background-color: #dc3545;
   color: white;
 }
 

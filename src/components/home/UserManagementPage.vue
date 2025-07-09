@@ -1,4 +1,4 @@
-<template>
+ <template>
   <div class="container mt-5">
     <!-- 切换用户类型的选项卡 -->
     <ul class="nav nav-tabs mb-4">

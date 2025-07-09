@@ -307,7 +307,7 @@ export default {
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase();
         result = result.filter(item => 
-          (item.id && item.id.toString().includes(query)) ||
+          (item.caseID && item.caseID.toString().includes(query)) ||
           (item.reporter && item.reporter.toLowerCase().includes(query)) ||
           (item.description && item.description.toLowerCase().includes(query)) ||
           (item.location && item.location.toLowerCase().includes(query)) ||
@@ -382,7 +382,7 @@ export default {
           // 处理返回的案例数据，确保数据格式一致
           this.cases = response.data.reports.map(item => {
             return {
-              caseID: item.id,
+              caseID: item.caseID, // 修正：使用正确的字段名caseID而不是id
               reporter: item.reporter || '未知',
               reporterPhone: item.reporterPhone || '无电话',
               caseType: item.caseType || '未分类',
@@ -392,10 +392,10 @@ export default {
               locationDescribe: item.locationDescribe || '无详细位置',
               status: item.status || '未处理',
               reportTime: this.formatDateTime(item.createdDate),
-              processTime: this.formatDateTime(item.processTime),
-              resolveTime: this.formatDateTime(item.resolveTime),
-              handlerName: item.handlerName || '',
-              updateNote: item.updateNote || ''
+              processTime: this.formatDateTime(item.processDate),
+              resolveTime: this.formatDateTime(item.closedDate),
+              managerName: item.managerName || '',
+              manageRemark: item.manageRemark || ''
             };
           });
           

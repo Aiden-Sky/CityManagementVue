@@ -26,9 +26,9 @@
               <span class="info-label">联系电话:</span>
               <span class="info-value">{{ caseItem.reporterPhone }}</span>
             </div>
-            <div class="info-item">
+                          <div class="info-item">
               <span class="info-label">举报时间:</span>
-              <span class="info-value">{{ caseItem.reportTime || '未记录' }}</span>
+              <span class="info-value">{{ reportTime }}</span>
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@
                 </div>
                 <div class="step-content">
                   <h5>案件创建</h5>
-                  <p>{{ caseItem.reportTime || '未记录' }}</p>
+                  <p>{{ reportTime }}</p>
                 </div>
               </div>
               <div class="progress-step" :class="{ 'completed': isProcessingOrResolved }">
@@ -79,7 +79,7 @@
                 </div>
                 <div class="step-content">
                   <h5>开始处理</h5>
-                  <p>{{ caseItem.processTime || '未开始' }}</p>
+                  <p>{{ caseItem.processDate || caseItem.processTime || '未开始' }}</p>
                 </div>
               </div>
               <div class="progress-step" :class="{ 'completed': isResolved }">
@@ -88,7 +88,7 @@
                 </div>
                 <div class="step-content">
                   <h5>案件解决</h5>
-                  <p>{{ caseItem.resolveTime || '未完成' }}</p>
+                  <p>{{ caseItem.closedDate || caseItem.resolveTime || '未完成' }}</p>
                 </div>
               </div>
             </div>
@@ -101,9 +101,9 @@
               <div class="mb-3">
                 <label for="status" class="form-label">状态</label>
                 <select id="status" class="form-select" v-model="updatedStatus">
-                  <option value="未处理">未处理</option>
                   <option value="处理中">处理中</option>
                   <option value="待处理">待处理</option>
+                  <option value="已撤销">已撤销</option>
                   <option value="已解决">已解决</option>
                 </select>
               </div>
@@ -190,13 +190,22 @@ export default {
     },
     isResolved() {
       return this.caseItem.status === '已解决';
+    },
+    // 日期显示，适配数据库字段
+    reportTime() {
+      return this.caseItem.createdDate || this.caseItem.reportTime || '未记录';
     }
   },
   mounted() {
     // 初始化状态为当前案件状态
     this.updatedStatus = this.caseItem.status;
-    this.handlerName = this.caseItem.handlerName || '';
-    this.updateNote = this.caseItem.updateNote || '';
+    this.handlerName = this.caseItem.managerName || '';
+    this.updateNote = this.caseItem.manageRemark || '';
+    
+    // 如果有处理方法，填充到解决方法字段
+    if (this.caseItem.handlingMethod) {
+      this.resolutionMethod = this.caseItem.handlingMethod;
+    }
   },
   methods: {
     async updateCase() {
@@ -210,24 +219,31 @@ export default {
           return;
         }
         
-        // 构建请求数据
+        // 构建请求数据 - 字段名与数据库保持一致
         const caseData = {
-          id: this.caseItem.caseID,
+          caseID: this.caseItem.caseID,
           status: this.updatedStatus,
-          handlerName: this.handlerName,
-          updateNote: this.updateNote
+          managerName: this.handlerName,
+          manageRemark: this.updateNote
         };
         
-        // 如果是已解决状态，添加解决方法
-        if (this.updatedStatus === '已解决' && this.resolutionMethod) {
-          caseData.resolutionMethod = this.resolutionMethod;
-          caseData.resolveTime = new Date().toISOString(); // 使用当前时间作为解决时间
+        // 如果是已解决状态，添加处理方法和关闭日期
+        if (this.updatedStatus === '已解决') {
+          caseData.handlingMethod = this.resolutionMethod || '已处理';
+          
+          // 只有在没有关闭日期的情况下才设置新的关闭日期
+          if (!this.caseItem.closedDate) {
+            caseData.closedDate = new Date().toISOString(); // 使用当前时间作为关闭时间
+          }
         }
         
-        // 如果是处理中状态，添加处理时间
-        if (this.updatedStatus === '处理中' && !this.caseItem.processTime) {
-          caseData.processTime = new Date().toISOString(); // 使用当前时间作为处理时间
+        // 如果是处理中状态，添加处理日期
+        if (this.updatedStatus === '处理中' && !this.caseItem.processDate) {
+          caseData.processDate = new Date().toISOString(); // 使用当前时间作为处理时间
         }
+        
+        // 设置是否需要回复举报人
+        caseData.needResponse = this.notifyReporter ? 1 : 0;
         
         const response = await axios.post('/city/caseInfom/SetInfom', caseData, {
           headers: {

@@ -103,7 +103,7 @@
           </div>
 
           <div class="col-md-6 col-lg-4 mb-3">
-            <div class="feature-card">
+            <div class="feature-card" @click="currentModule = 'geographyView'">
               <div class="feature-icon">
                 <i class="bi bi-geo-alt"></i>
               </div>
@@ -145,6 +145,9 @@
           <div v-if="currentModule === 'updateCase' && selectedCase">
             <update-case :case-item="selectedCase" @go-back="goBackToList"></update-case>
           </div>
+          <div v-if="currentModule === 'geographyView'">
+            <geography-view @go-back="currentModule = 'viewCases'"></geography-view>
+          </div>
         </div>
       </div>
     </div>
@@ -178,6 +181,7 @@
 <script>
 import ViewCases from './components/ManagementHome/viewCases.vue';
 import UpdateCase from './components/ManagementHome/UpdateCase.vue';
+import GeographyView from './components/ManagementHome/GeographyView.vue';
 import axios from 'axios';
 
 export default {
@@ -185,6 +189,7 @@ export default {
   components: {
     ViewCases,
     UpdateCase,
+    GeographyView,
   },
   data() {
     return {

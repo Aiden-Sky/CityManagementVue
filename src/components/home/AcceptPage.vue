@@ -32,7 +32,7 @@
                 <option value="已撤销">已撤销</option>
               </select>
             </div>
-            <div class="list-group">
+          <div class="list-group">
               <button class="list-group-item list-group-item-action">
                 <i class="fas fa-tags"></i> 大类小类查询
               </button>
@@ -42,8 +42,8 @@
               <button class="list-group-item list-group-item-action">
                 <i class="fas fa-calendar-alt"></i> 时间段
               </button>
-            </div>
-            <div class="mt-3">
+          </div>
+          <div class="mt-3">
               <button class="btn btn-primary" style="width:100px;">
                 <i class="fas fa-search"></i> 查询
               </button>
@@ -66,27 +66,27 @@
             <div class="table-responsive">
               <table class="table table-hover">
                 <thead class="table-light">
-                  <tr>
+            <tr>
                     <th><input type="checkbox" @click="selectAll" :checked="reports.length > 0 && selectedReports.length === reports.length"></th>
-                    <th>序号</th>
-                    <th>举报人</th>
-                    <th>举报人电话</th>
-                    <th>举报时间</th>
-                    <th>信息描述</th>
-                    <th>位置描述</th>
-                    <th>状态</th>
+              <th>序号</th>
+              <th>举报人</th>
+              <th>举报人电话</th>
+              <th>举报时间</th>
+              <th>信息描述</th>
+              <th>位置描述</th>
+              <th>状态</th>
                     <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
+            </tr>
+          </thead>
+          <tbody>
                   <tr v-if="reports.length === 0">
                     <td colspan="9" class="text-center py-3">暂无数据</td>
                   </tr>
                   <tr v-for="report in filteredReports" :key="report.caseID" :class="{'table-warning': selectedReports.includes(report.caseID)}">
-                    <td><input type="checkbox" :value="report.caseID" v-model="selectedReports" @click.stop/></td>
-                    <td>{{ report.caseID }}</td>
-                    <td>{{ report.reporter }}</td>
-                    <td>{{ report.reporterPhone }}</td>
+              <td><input type="checkbox" :value="report.caseID" v-model="selectedReports" @click.stop/></td>
+              <td>{{ report.caseID }}</td>
+              <td>{{ report.reporter }}</td>
+              <td>{{ report.reporterPhone }}</td>
                     <td>{{ formatDateTime(report.createdDate) }}</td>
                     <td :title="report.description">{{ truncateText(report.description, 20) }}</td>
                     <td :title="report.locationDescribe">{{ truncateText(report.locationDescribe, 15) }}</td>
@@ -102,13 +102,13 @@
                         <i class="fas fa-check-circle"></i>
                       </button>
                     </td>
-                  </tr>
-                </tbody>
-              </table>
+            </tr>
+          </tbody>
+        </table>
             </div>
           </div>
           <div class="card-footer">
-            <pagination :total="totalPages" :current="currentPage" @change="handlePageChange"
+        <pagination :total="totalPages" :current="currentPage" @change="handlePageChange"
                       style="display: flex; justify-content: center;"/>
           </div>
         </div>
@@ -198,12 +198,12 @@
     <!-- 承办人选择弹窗 -->
     <div class="modal fade show" tabindex="-1" role="dialog" v-if="showManagerModal">
       <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
+      <div class="modal-content">
+        <div class="modal-header">
             <h5 class="modal-title"><i class="fas fa-user-check"></i> 选择承办人</h5>
             <button type="button" class="btn-close" @click="closeManagerModal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
+        </div>
+        <div class="modal-body">
             <div class="alert alert-info" v-if="loadingManagers">
               <i class="fas fa-spinner fa-spin mr-2"></i> 正在加载承办人列表...
             </div>
@@ -211,13 +211,13 @@
               {{ managerError }}
             </div>
             <div class="mb-3" v-if="!loadingManagers && !managerError">
-              <label for="managerSelect" class="form-label">承办人列表</label>
+            <label for="managerSelect" class="form-label">承办人列表</label>
               <select v-model="selectedManagerID" class="form-select" id="managerSelect" required>
                 <option value="" disabled selected>请选择承办人</option>
-                <option v-for="manager in managers" :key="manager.managerID" :value="manager.managerID">
+              <option v-for="manager in managers" :key="manager.managerID" :value="manager.managerID">
                   {{ manager.name }} (ID: {{ manager.managerID }})
-                </option>
-              </select>
+              </option>
+            </select>
               <div class="form-text">选择一位负责人来处理该案件</div>
             </div>
             <div class="mb-3">
@@ -373,14 +373,14 @@ export default {
         );
         
         Promise.all(requests)
-          .then(() => {
-            this.fetchReports(this.currentPage);
-            this.selectedReports = [];
-          })
-          .catch(error => {
+        .then(() => {
+          this.fetchReports(this.currentPage);
+          this.selectedReports = [];
+        })
+        .catch(error => {
             this.error = "删除案件失败: " + (error.response?.data || error.message || "未知错误");
             console.error("删除案件失败", error);
-          });
+        });
       }
     },
     showAssignManagerModal(report = null) {

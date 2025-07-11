@@ -51,7 +51,7 @@
           </div>
 
           <div class="form-buttons">
-            <button type="submit" class="btn btn-success" @click="addCase">添加</button>
+            <button type="submit" class="btn btn-success">添加</button>
             <button type="button" class="btn btn-danger" @click="goBack">返回</button>
           </div>
         </form>

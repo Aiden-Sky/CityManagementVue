@@ -130,10 +130,25 @@
                   </div>
 
                   <!-- 现场图片 -->
-                  <div v-if="selectedCase.photo" class="mb-4">
+                  <div v-if="selectedCase" class="mb-4">
                     <h5>现场图片</h5>
                     <div class="image-container">
-                      <img :src="getPhotoUrl(selectedCase.photo)" alt="现场图片" class="case-image img-fluid">
+                      <div v-if="imageLoading" class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                          <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-2">加载图片中...</p>
+                      </div>
+                      <img v-else-if="caseImage" :src="caseImage" alt="现场图片" class="case-image img-fluid">
+                      <div v-else-if="imageError" class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        图片加载失败: {{ imageError }}
+                      </div>
+                      <div v-else class="text-center py-3">
+                        <button class="btn btn-outline-primary" @click="loadCaseImage(selectedCase.caseID)">
+                          <i class="bi bi-image me-1"></i> 查看图片
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -249,6 +264,9 @@ export default {
       cancelReason: '', // 撤销原因
       isCancelling: false, // 是否正在撤销
       cancelModal: null, // 撤销模态框实例
+      caseImage: null, // 案件图片
+      imageLoading: false, // 是否正在加载图片
+      imageError: null, // 图片加载错误信息
     };
   },
   computed: {
@@ -301,6 +319,45 @@ export default {
     },
     selectCase(caseItem) {
       this.selectedCase = caseItem;
+      this.caseImage = null; // 清除之前的图片
+      this.imageError = null; // 清除之前的错误
+    },
+    
+    // 加载案件图片
+    loadCaseImage(caseId) {
+      if (!caseId) return;
+      
+      this.imageLoading = true;
+      this.imageError = null;
+      this.caseImage = null;
+      
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        this.imageError = "未登录，无法加载图片";
+        this.imageLoading = false;
+        return;
+      }
+      
+      // 使用axios请求图片
+      axios({
+        method: 'get',
+        url: `/city/caseInfom/getCaseImage?caseId=${caseId}`,
+        headers: {
+          'Authorization': token
+        },
+        responseType: 'blob' // 重要：指定响应类型为blob
+      })
+      .then(response => {
+        // 创建Blob URL
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        this.caseImage = URL.createObjectURL(blob);
+        this.imageLoading = false;
+      })
+      .catch(error => {
+        console.error('获取图片失败:', error);
+        this.imageError = error.response?.data || "获取图片失败";
+        this.imageLoading = false;
+      });
     },
     goBack() {
       this.$router.go(-1);
@@ -419,23 +476,7 @@ export default {
       }
     },
     // 处理照片显示
-    getPhotoUrl(photoData) {
-      if (!photoData) return null;
-      
-      // 如果已经是URL字符串，直接返回
-      if (typeof photoData === 'string' && (photoData.startsWith('http') || photoData.startsWith('data:'))) {
-        return photoData;
-      }
-      
-      // 如果是Base64编码的图片数据
-      try {
-        // 尝试将二进制数据转换为Base64
-        return `data:image/jpeg;base64,${photoData}`;
-      } catch (error) {
-        console.error('处理图片数据失败:', error);
-        return null;
-      }
-    },
+    // 不再需要这个方法，改为使用loadCaseImage方法
   },
   mounted() {
     this.fetchCases(); // 在组件挂载时获取案件列表

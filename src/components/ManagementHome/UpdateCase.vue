@@ -26,7 +26,7 @@
               <span class="info-label">联系电话:</span>
               <span class="info-value">{{ caseItem.reporterPhone }}</span>
             </div>
-                          <div class="info-item">
+            <div class="info-item">
               <span class="info-label">举报时间:</span>
               <span class="info-value">{{ reportTime }}</span>
             </div>
@@ -43,8 +43,24 @@
               <span class="info-label">位置描述:</span>
               <span class="info-value">{{ caseItem.locationDescribe }}</span>
             </div>
-            <div class="location-map">
-              <img src="https://via.placeholder.com/400x200?text=位置地图" alt="位置地图" class="img-fluid">
+            <div class="case-image-container">
+              <h5 class="mb-3">案件图片</h5>
+              <div v-if="imageLoading" class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="mt-2">加载图片中...</p>
+              </div>
+              <img v-else-if="caseImage" :src="caseImage" alt="案件图片" class="img-fluid rounded">
+              <div v-else-if="imageError" class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                图片加载失败: {{ imageError }}
+              </div>
+              <div v-else class="text-center py-3">
+                <button class="btn theme-btn-outline" @click="loadCaseImage(caseItem.caseID)">
+                  <i class="bi bi-image me-1"></i> 查看案件图片
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -181,7 +197,10 @@ export default {
       notifyReporter: true,
       isSubmitting: false,
       showSuccessAlert: false,
-      errorMessage: ''
+      errorMessage: '',
+      caseImage: null, // 案件图片
+      imageLoading: false, // 是否正在加载图片
+      imageError: null, // 图片加载错误信息
     };
   },
   computed: {
@@ -253,7 +272,7 @@ export default {
         });
         
         if (response.status === 200) {
-          this.showSuccessAlert = true;
+        this.showSuccessAlert = true;
           
           // 如果需要通知举报人，调用通知API（如果有的话）
           if (this.notifyReporter) {
@@ -264,10 +283,10 @@ export default {
               console.error('通知举报人失败:', notifyError);
             }
           }
-          
-          // 5秒后自动关闭提示
-          setTimeout(() => {
-            this.showSuccessAlert = false;
+        
+        // 5秒后自动关闭提示
+        setTimeout(() => {
+          this.showSuccessAlert = false;
             // 更新完成后可以返回列表页面
             this.$emit('go-back', true); // 传递true表示已更新
           }, 3000);
@@ -282,7 +301,48 @@ export default {
       }
     },
     goBack() {
+      // 释放Blob URL，避免内存泄漏
+      if (this.caseImage) {
+        URL.revokeObjectURL(this.caseImage);
+      }
       this.$emit('go-back');
+    },
+    
+    // 加载案件图片
+    loadCaseImage(caseId) {
+      if (!caseId) return;
+      
+      this.imageLoading = true;
+      this.imageError = null;
+      this.caseImage = null;
+      
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        this.imageError = "未登录，无法加载图片";
+        this.imageLoading = false;
+        return;
+      }
+      
+      // 使用axios请求图片
+      axios({
+        method: 'get',
+        url: `/city/caseInfom/getCaseImage?caseId=${caseId}`,
+        headers: {
+          'Authorization': token
+        },
+        responseType: 'blob' // 重要：指定响应类型为blob
+      })
+      .then(response => {
+        // 创建Blob URL
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        this.caseImage = URL.createObjectURL(blob);
+        this.imageLoading = false;
+      })
+      .catch(error => {
+        console.error('获取图片失败:', error);
+        this.imageError = error.response?.data || "获取图片失败";
+        this.imageLoading = false;
+      });
     }
   }
 };
@@ -340,10 +400,16 @@ export default {
   white-space: pre-line;
 }
 
-.location-map {
+.case-image-container {
   margin-top: 15px;
   border-radius: 8px;
-  overflow: hidden;
+  padding: 15px;
+  background-color: #f8f9fa;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .progress-timeline {

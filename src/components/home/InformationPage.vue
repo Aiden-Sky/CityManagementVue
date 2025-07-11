@@ -45,8 +45,8 @@
                 <option value="社区安全">社区安全</option>
                 <option value="其他">其他</option>
               </select>
-            </div>
-            <div class="mt-3">
+          </div>
+          <div class="mt-3">
               <button class="btn btn-primary" style="width:100px;" @click="applyFilters">
                 <i class="fas fa-search"></i> 查询
               </button>
@@ -69,29 +69,29 @@
             <div class="table-responsive">
               <table class="table table-hover">
                 <thead class="table-light">
-                  <tr>
+          <tr>
                     <th><input type="checkbox" @click="selectAll" :checked="reports.length > 0 && selectedReports.length === reports.length"></th>
-                    <th>序号</th>
-                    <th>举报人</th>
-                    <th>举报时间</th>
-                    <th>信息描述</th>
-                    <th>信息大类</th>
-                    <th>位置描述</th>
-                    <th>状态</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <th>序号</th>
+            <th>举报人</th>
+            <th>举报时间</th>
+            <th>信息描述</th>
+            <th>信息大类</th>
+            <th>位置描述</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+          </thead>
+          <tbody>
                   <tr v-if="filteredReports.length === 0">
                     <td colspan="9" class="text-center py-3">暂无数据</td>
                   </tr>
                   <tr v-for="report in filteredReports" :key="report.caseID" :class="{'table-warning': selectedReports.includes(report.caseID)}">
-                    <td><input type="checkbox" :value="report.caseID" v-model="selectedReports" @click.stop/></td>
-                    <td>{{ report.caseID }}</td>
-                    <td>{{ report.reporter }}</td>
+            <td><input type="checkbox" :value="report.caseID" v-model="selectedReports" @click.stop/></td>
+            <td>{{ report.caseID }}</td>
+            <td>{{ report.reporter }}</td>
                     <td>{{ formatDateTime(report.createdDate) }}</td>
                     <td :title="report.description">{{ truncateText(report.description, 20) }}</td>
-                    <td>{{ report.infoCategory }}</td>
+            <td>{{ report.infoCategory }}</td>
                     <td :title="report.locationDescribe">{{ truncateText(report.locationDescribe, 15) }}</td>
                     <td>
                       <span :class="getStatusClass(report.status)">{{ report.status }}</span>
@@ -106,10 +106,10 @@
                       <button class="btn btn-sm btn-outline-danger" @click="deleteReport(report)" title="删除">
                         <i class="fas fa-trash"></i>
                       </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            </td>
+          </tr>
+          </tbody>
+        </table>
             </div>
           </div>
           <div class="card-footer">
@@ -183,10 +183,25 @@
           <span class="detail-label"><i class="fas fa-calendar-check"></i> 关闭日期:</span>
           <span class="detail-value">{{ formatDateTime(selectedReport.closedDate) }}</span>
         </div>
-        <div class="detail-item" v-if="selectedReport.photoUrl">
+        <div class="detail-item">
           <span class="detail-label"><i class="fas fa-image"></i> 图片:</span>
           <div class="detail-value">
-            <img :src="selectedReport.photoUrl" alt="报告图片" class="img-thumbnail" />
+            <div v-if="imageLoading" class="text-center py-3">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+              </div>
+              <p class="mt-2">加载图片中...</p>
+            </div>
+            <img v-else-if="caseImage" :src="caseImage" alt="报告图片" class="img-thumbnail" />
+            <div v-else-if="imageError" class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              图片加载失败: {{ imageError }}
+            </div>
+            <div v-else class="text-center py-3">
+              <button class="btn btn-outline-primary" @click="loadCaseImage(selectedReport.caseID)">
+                <i class="fas fa-image me-1"></i> 查看图片
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -206,54 +221,54 @@
       <div class="modal-backdrop fade show" @click="closeModal"></div>
       <!-- 模态窗口 -->
       <div class="modal fade show" style="display: block; z-index: 1050;">
-        <div class="modal-dialog modal-lg" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
               <h5 class="modal-title">
                 <i class="fas fa-edit"></i> {{ isNewCase ? '新增案件' : '编辑案件' }}
               </h5>
-              <button type="button" class="btn-close" @click="closeModal"></button>
-            </div>
-            <div class="modal-body">
+            <button type="button" class="btn-close" @click="closeModal"></button>
+          </div>
+          <div class="modal-body">
               <form @submit.prevent="saveReport">
-                <div class="row mb-3">
-                  <div class="col-md-6">
+              <div class="row mb-3">
+                <div class="col-md-6">
                     <label for="reporter" class="form-label">举报人姓名</label>
                     <input type="text" class="form-control" id="reporter" v-model="editingReport.reporter" required>
-                  </div>
-                  <div class="col-md-6">
+                </div>
+                <div class="col-md-6">
                     <label for="reporterPhone" class="form-label">联系电话</label>
                     <input type="text" class="form-control" id="reporterPhone" v-model="editingReport.reporterPhone" required>
-                  </div>
                 </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
                     <label class="form-label">是否核实</label>
-                    <div class="d-flex">
-                      <div class="form-check me-3">
+                  <div class="d-flex">
+                    <div class="form-check me-3">
                         <input class="form-check-input" type="radio" id="verified-yes" :value="true" v-model="editingReport.verified">
                         <label class="form-check-label" for="verified-yes">是</label>
-                      </div>
-                      <div class="form-check">
+                    </div>
+                    <div class="form-check">
                         <input class="form-check-input" type="radio" id="verified-no" :value="false" v-model="editingReport.verified">
                         <label class="form-check-label" for="verified-no">否</label>
                       </div>
                     </div>
                   </div>
-                  <div class="col-md-6">
+                <div class="col-md-6">
                     <label for="createdDate" class="form-label">举报时间</label>
                     <input type="datetime-local" class="form-control" id="createdDate" v-model="editingReport.createdDate">
-                  </div>
                 </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
                     <label for="needResponse" class="form-label">是否需要回复</label>
                     <select class="form-select" id="needResponse" v-model="editingReport.needResponse">
-                      <option :value="true">是</option>
-                      <option :value="false">否</option>
-                    </select>
-                  </div>
-                  <div class="col-md-6">
+                    <option :value="true">是</option>
+                    <option :value="false">否</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
                     <label for="severity" class="form-label">严重程度</label>
                     <select class="form-select" id="severity" v-model="editingReport.severity">
                       <option value="低">低</option>
@@ -261,10 +276,10 @@
                       <option value="高">高</option>
                       <option value="紧急">紧急</option>
                     </select>
-                  </div>
                 </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
                     <label for="infoCategory" class="form-label">信息大类</label>
                     <select class="form-select" id="infoCategory" v-model="editingReport.infoCategory">
                       <option value="基础设施">基础设施</option>
@@ -272,28 +287,28 @@
                       <option value="社区安全">社区安全</option>
                       <option value="其他">其他</option>
                     </select>
-                  </div>
-                  <div class="col-md-6">
+                </div>
+                <div class="col-md-6">
                     <label for="caseType" class="form-label">案件类型</label>
                     <input type="text" class="form-control" id="caseType" v-model="editingReport.caseType">
-                  </div>
                 </div>
-                <div class="mb-3">
+              </div>
+              <div class="mb-3">
                   <label for="description" class="form-label">信息描述</label>
                   <textarea class="form-control" id="description" rows="3" v-model="editingReport.description" required></textarea>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
                     <label for="location" class="form-label">位置</label>
                     <input type="text" class="form-control" id="location" v-model="editingReport.location">
-                  </div>
-                  <div class="col-md-6">
+                </div>
+                <div class="col-md-6">
                     <label for="locationDescribe" class="form-label">位置描述</label>
                     <input type="text" class="form-control" id="locationDescribe" v-model="editingReport.locationDescribe">
-                  </div>
                 </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
                     <label for="status" class="form-label">状态</label>
                     <select class="form-select" id="status" v-model="editingReport.status">
                       <option value="待处理">待处理</option>
@@ -301,21 +316,35 @@
                       <option value="已完成">已完成</option>
                       <option value="已撤销">已撤销</option>
                     </select>
-                  </div>
-                  <div class="col-md-6">
+                </div>
+                <div class="col-md-6">
                     <label for="closedDate" class="form-label">关闭日期</label>
                     <input type="datetime-local" class="form-control" id="closedDate" v-model="editingReport.closedDate">
-                  </div>
                 </div>
-                <div class="mb-3">
+              </div>
+              <div class="mb-3">
                   <label for="handlingMethod" class="form-label">处理方式</label>
                   <input type="text" class="form-control" id="handlingMethod" v-model="editingReport.handlingMethod">
-                </div>
-                <div class="mb-3">
+              </div>
+              <div class="mb-3">
                   <label for="photoUrl" class="form-label">图片</label>
                   <input type="file" class="form-control" id="photoUrl" @change="handleFileUpload" accept="image/*">
-                  <div class="mt-2" v-if="previewImage || editingReport.photoUrl">
-                    <img :src="previewImage || editingReport.photoUrl" alt="案件图片" class="img-thumbnail" style="max-height: 200px;">
+                  <div class="mt-2" v-if="previewImage">
+                    <img :src="previewImage" alt="案件图片" class="img-thumbnail" style="max-height: 200px;">
+                  </div>
+                  <div class="mt-2" v-else-if="editingReport.caseID && !previewImage">
+                    <button type="button" class="btn btn-outline-secondary" @click="loadEditCaseImage(editingReport.caseID)">
+                      <i class="fas fa-image me-1"></i> 查看已上传图片
+                    </button>
+                    <div v-if="editImageLoading" class="text-center py-2 mt-2">
+                      <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                      </div>
+                      <span class="ms-2">加载图片中...</span>
+                    </div>
+                    <div v-if="editCaseImage" class="mt-2">
+                      <img :src="editCaseImage" alt="案件图片" class="img-thumbnail" style="max-height: 200px;">
+                    </div>
                   </div>
                 </div>
                 <div class="modal-footer">
@@ -325,9 +354,9 @@
                   <button type="submit" class="btn btn-primary" :disabled="saving">
                     <i class="fas fa-save"></i> {{ saving ? '保存中...' : '保存' }}
                   </button>
-                </div>
-              </form>
-            </div>
+              </div>
+            </form>
+          </div>
           </div>
         </div>
       </div>
@@ -365,6 +394,11 @@ export default {
       categoryFilter: '',
       previewImage: null,
       imageFile: null,
+      caseImage: null, // 案件图片
+      imageLoading: false, // 是否正在加载图片
+      imageError: null, // 图片加载错误信息
+      editCaseImage: null, // 编辑时的案件图片
+      editImageLoading: false, // 是否正在加载编辑时的图片
       editingReport: {
         caseID: '',
         photoUrl: '',
@@ -446,6 +480,45 @@ export default {
     selectReport(report) {
       this.selectedReport = report;
       this.addBlock = false;
+      this.caseImage = null; // 清除之前的图片
+      this.imageError = null; // 清除之前的错误
+    },
+    
+    // 加载案件图片
+    loadCaseImage(caseId) {
+      if (!caseId) return;
+      
+      this.imageLoading = true;
+      this.imageError = null;
+      this.caseImage = null;
+      
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        this.imageError = "未登录，无法加载图片";
+        this.imageLoading = false;
+        return;
+      }
+      
+      // 使用axios请求图片
+      axios({
+        method: 'get',
+        url: `/city/caseInfom/getCaseImage?caseId=${caseId}`,
+        headers: {
+          'Authorization': token
+        },
+        responseType: 'blob' // 重要：指定响应类型为blob
+      })
+      .then(response => {
+        // 创建Blob URL
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        this.caseImage = URL.createObjectURL(blob);
+        this.imageLoading = false;
+      })
+      .catch(error => {
+        console.error('获取图片失败:', error);
+        this.imageError = error.response?.data || "获取图片失败";
+        this.imageLoading = false;
+      });
     },
     selectAll(event) {
       if (event.target.checked) {
@@ -509,14 +582,56 @@ export default {
       }
       
       this.previewImage = null;
+      this.editCaseImage = null;
       this.showModal = true;
       this.addBlock = true;
+    },
+
+    // 加载编辑时的案件图片
+    loadEditCaseImage(caseId) {
+      if (!caseId) return;
+      
+      this.editImageLoading = true;
+      
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        alert("未登录，无法加载图片");
+        this.editImageLoading = false;
+        return;
+      }
+      
+      // 使用axios请求图片
+      axios({
+        method: 'get',
+        url: `/city/caseInfom/getCaseImage?caseId=${caseId}`,
+        headers: {
+          'Authorization': token
+        },
+        responseType: 'blob' // 重要：指定响应类型为blob
+      })
+      .then(response => {
+        // 创建Blob URL
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        this.editCaseImage = URL.createObjectURL(blob);
+        this.editImageLoading = false;
+          })
+          .catch(error => {
+        console.error('获取图片失败:', error);
+        alert("获取图片失败: " + (error.response?.data || "未知错误"));
+        this.editImageLoading = false;
+          });
     },
     closeModal() {
       this.showModal = false;
       this.addBlock = false;
       this.previewImage = null;
       this.imageFile = null;
+      this.editCaseImage = null;
+      
+      // 释放Blob URL，避免内存泄漏
+      if (this.editCaseImage) {
+        URL.revokeObjectURL(this.editCaseImage);
+      }
     },
     handleFileUpload(event) {
       const file = event.target.files[0];
@@ -571,17 +686,17 @@ export default {
             'Authorization': token
           }
         })
-          .then(() => {
+            .then(() => {
             if (this.selectedReport && this.selectedReport.caseID === report.caseID) {
               this.selectedReport = null;
             }
-            this.fetchReports(this.currentPage);
+              this.fetchReports(this.currentPage);
             alert('案件删除成功');
-          })
-          .catch(error => {
+            })
+            .catch(error => {
             alert("删除失败: " + (error.response?.data || error.message || "未知错误"));
             console.error("删除案件错误", error);
-          });
+            });
       }
     },
     deleteSelectedReports() {

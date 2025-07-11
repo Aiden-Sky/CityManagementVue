@@ -237,6 +237,27 @@
               <div class="col-md-6">
                 <h6>位置信息</h6>
                 <p>{{ selectedCaseDetail.location }} - {{ selectedCaseDetail.locationDescribe }}</p>
+                
+                <!-- 案件图片 -->
+                <div class="case-image-container mt-3">
+                  <h6>案件图片</h6>
+                  <div v-if="imageLoading" class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-2">加载图片中...</p>
+                  </div>
+                  <img v-else-if="caseImage" :src="caseImage" alt="案件图片" class="img-fluid rounded">
+                  <div v-else-if="imageError" class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    图片加载失败: {{ imageError }}
+                  </div>
+                  <div v-else class="text-center py-3">
+                    <button class="btn theme-btn-outline" @click="loadCaseImage(selectedCaseDetail.caseID)">
+                      <i class="bi bi-image me-1"></i> 查看案件图片
+                    </button>
+                  </div>
+                </div>
               </div>
               <div class="col-md-6">
                 <h6>处理记录</h6>
@@ -261,6 +282,14 @@
                       <h6 class="mb-0">案件解决</h6>
                       <small>{{ selectedCaseDetail.resolveTime || '未记录' }}</small>
                     </div>
+                  </div>
+                </div>
+                
+                <!-- 处理备注 -->
+                <div class="mt-3" v-if="selectedCaseDetail.manageRemark">
+                  <h6>处理备注</h6>
+                  <div class="p-2 bg-light rounded">
+                    {{ selectedCaseDetail.manageRemark }}
                   </div>
                 </div>
               </div>
@@ -292,11 +321,14 @@ export default {
       categoryFilter: '',
       currentPage: 1,
       pageSize: 5,
-      sortKey: '',
-      sortOrder: 'asc',
+      sortKey: 'caseID',
+      sortOrder: 'desc',
       selectedCaseDetail: null,
       totalCount: 0,
-      error: ''
+      error: '',
+      caseImage: null, // 案件图片
+      imageLoading: false, // 是否正在加载图片
+      imageError: null // 图片加载错误信息
     };
   },
   computed: {
@@ -368,10 +400,11 @@ export default {
           return;
         }
         
+        // 获取所有案件数据（不分页）
         const response = await axios.get('/city/caseInfom/getInfoms', {
           params: {
-            page: this.currentPage,
-            pageSize: this.pageSize
+            page: 1,
+            pageSize: 9999 // 请求大量数据，获取所有案件
           },
           headers: {
             Authorization: token
@@ -395,13 +428,23 @@ export default {
               processTime: this.formatDateTime(item.processDate),
               resolveTime: this.formatDateTime(item.closedDate),
               managerName: item.managerName || '',
-              manageRemark: item.manageRemark || ''
+              manageRemark: item.manageRemark || '',
+              // 保存原始数据，用于详情显示
+              createdDate: item.createdDate,
+              processDate: item.processDate,
+              closedDate: item.closedDate
             };
           });
           
           if (response.data.totalPages) {
             this.totalCount = response.data.totalPages * this.pageSize;
+          } else {
+            this.totalCount = this.cases.length;
           }
+          
+          // 初始排序
+          this.sortBy('caseID');
+          this.sortOrder = 'desc'; // 默认按案件ID降序排列，最新的在前面
         } else {
           this.cases = [];
           this.totalCount = 0;
@@ -435,8 +478,7 @@ export default {
     },
     applyFilters() {
       this.currentPage = 1; // 重置为第一页
-      // 如果使用服务器端筛选，可能需要重新获取数据
-      // this.fetchCases();
+      // 前端筛选，不需要重新获取数据
     },
     resetFilters() {
       this.searchQuery = '';
@@ -449,8 +491,7 @@ export default {
     changePage(page) {
       if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page;
-        // 如果使用服务器端分页，需要重新获取数据
-        // this.fetchCases();
+        // 使用前端分页，不需要重新获取数据
       }
     },
     sortBy(key) {
@@ -484,9 +525,50 @@ export default {
     },
     viewDetails(caseItem) {
       this.selectedCaseDetail = { ...caseItem };
+      // 清除之前的图片数据
+      this.caseImage = null;
+      this.imageError = null;
+      
       // 使用Bootstrap的Modal API显示模态框
       const modal = new bootstrap.Modal(document.getElementById('caseDetailModal'));
       modal.show();
+    },
+    
+    // 加载案件图片
+    async loadCaseImage(caseId) {
+      if (!caseId) return;
+      
+      this.imageLoading = true;
+      this.imageError = null;
+      this.caseImage = null;
+      
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        this.imageError = "未登录，无法加载图片";
+        this.imageLoading = false;
+        return;
+      }
+      
+      try {
+        // 使用axios请求图片
+        const response = await axios({
+          method: 'get',
+          url: `/city/caseInfom/getCaseImage?caseId=${caseId}`,
+          headers: {
+            'Authorization': token
+          },
+          responseType: 'blob' // 重要：指定响应类型为blob
+        });
+        
+        // 创建Blob URL
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        this.caseImage = URL.createObjectURL(blob);
+      } catch (error) {
+        console.error('获取图片失败:', error);
+        this.imageError = error.response?.data || "获取图片失败";
+      } finally {
+        this.imageLoading = false;
+      }
     }
   }
 };
@@ -634,5 +716,21 @@ export default {
 
 .timeline-content {
   padding-left: 10px;
+}
+
+.case-image-container {
+  margin-top: 15px;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.theme-spinner {
+  color: var(--theme-color);
 }
 </style>
